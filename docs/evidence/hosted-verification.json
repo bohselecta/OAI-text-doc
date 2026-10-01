@@ -1,7 +1,7 @@
 {
   "verifiedRuntimeCommit": "391500f067295509de34b47c0facdcf9413b2877",
   "baseCommit": "22466c2df904486dd6e67cfc97550fd1a61b6bb8",
-  "ciRun": "https://github.com/bohselecta/OAI-text-doc/actions/runs/36799320218",
+  "ciRun": "https://github.com/bohselecta/OAI-text-doc/actions/runs/36799703761",
   "localNodeVersion": "24.19.0",
   "ciNodeVersions": [
     22,
@@ -71,5 +71,16 @@
     "src/ui/shell.css": "3051e3e7da3c3e444b3e58972e0ec4634cd42a28e613f31687dbb19218bd3b8a",
     "api/index.mjs": "b0fbfff4614ef32b2372895434927924f68f15015e3e68810dec10e6228329e4",
     "vercel.json": "181afc03502dbc51243feb7796610160d2fd94e0c8afea46901f61b6fddb8d63"
+  },
+  "historicalCiRun": "https://github.com/bohselecta/OAI-text-doc/actions/runs/36799320218",
+  "verifiedHeadCommit": "9a75e68283a799d9988b809489724e031851e537",
+  "integrationReview": {
+    "date": "2026-10-01",
+    "protectedFilesComparedToBaseline": 19,
+    "runtimeHashesMatched": 32,
+    "ciJobsPassed": 5,
+    "unresolvedReviewThreads": 0,
+    "runtimeChanges": "none; documentation reconciliation only",
+    "externalAuthorization": "not granted by repository integration"
   }
 }

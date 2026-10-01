@@ -1,4 +1,4 @@
-> **Current continuation:** The additive Apps SDK/Vercel/Neon slice is in draft PR #2. Read [hosted status](HOSTED-STATUS.md), [setup](APPS-SDK-VERCEL-NEON.md), and [frozen native hashes](native-module-contract.json) first. Do not alter the preserved module or infer deployment/merge approval.
+> **Current continuation:** The additive Apps SDK/Vercel/Neon slice has exact-head verification and authorized repository integration through PR #2; consult GitHub for its merge commit. Read [hosted status](HOSTED-STATUS.md), [setup](APPS-SDK-VERCEL-NEON.md), and [frozen native hashes](native-module-contract.json) first. Do not alter the preserved module or infer external deployment, provider, listing, adoption or legal-execution approval.
 
 # Next agent — start here
 

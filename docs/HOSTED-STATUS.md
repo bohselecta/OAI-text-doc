@@ -2,7 +2,9 @@
 
 **Implemented and verified in local/CI environments; external deployment acceptance remains separate.**
 
-Draft PR: [#2](https://github.com/bohselecta/OAI-text-doc/pull/2), left unmerged. Verified runtime: `391500f067295509de34b47c0facdcf9413b2877`. Subsequent evidence-only changes do not alter these runtime hashes. [All five CI jobs passed](https://github.com/bohselecta/OAI-text-doc/actions/runs/36799320218). The [verification manifest](evidence/hosted-verification.json) records exact source hashes, environments and limits.
+Repository integration: [PR #2](https://github.com/bohselecta/OAI-text-doc/pull/2). Audited exact head: `9a75e68283a799d9988b809489724e031851e537`; [Verify Document run 36799703761](https://github.com/bohselecta/OAI-text-doc/actions/runs/36799703761) completed successfully with all five jobs passing. The earlier runtime revision `391500f067295509de34b47c0facdcf9413b2877` and its run remain historical evidence; every recorded runtime hash also matches the audited head. This integration reconciliation changes documentation only. The [verification manifest](evidence/hosted-verification.json) records both revisions, exact source hashes, environments and limits.
+
+On 2026-10-01, the user explicitly authorized removing draft status and merging after repository checks. Review found no repository-internal blocker: no review submissions or unresolved threads, GitHub reported a clean mergeable head, and exact baseline comparisons confirmed all 19 protected native/legal files. Merge status and the resulting commit are recorded by GitHub on PR #2; this record does not predeclare merge success.
 
 ## Acceptance against the frozen contract
 
@@ -15,7 +17,7 @@ Draft PR: [#2](https://github.com/bohselecta/OAI-text-doc/pull/2), left unmerged
 | SDK-05 Draft/Publish/BUILD | PASS: proposal does not commit, explicit acceptance changes one section, other bytes stay intact, history/undo/locks preserved, structural-only/rehearsal release stays blocked. Full export includes source and honest audit receipt. Positive model-review tests use explicit fixtures. |
 | SDK-06 serverless boundary | PASS in code/build/HTTP checks: request-scoped Neon pools, no SQLite or user data written by hosted function, Postgres-owned rate limits and leases. Vercel function itself not deployed. |
 | SDK-07 workflow/build | PASS: Node 22 and 24 contracts/build/benchmarks; original native browser workflow; hosted static assets match original UI bytes; actual `.well-known` metadata generation and fail-closed missing deployment config. |
-| SDK-08 delivery/honesty | PASS: source/setup/migration/evidence in draft PR; original grant/branding preserved; no infrastructure, credentials, OAuth grant, live model call, deployment or merge performed. |
+| SDK-08 delivery/honesty | PASS: source/setup/migration/evidence reviewed for repository integration; original grant/branding preserved. Repository merge is explicitly authorized separately from infrastructure, credentials, OAuth grants, live model calls and deployment. |
 
 Local Node aggregate: **286 tests, 285 passed, 0 failed, 1 expected skip**. The skipped real-PostgreSQL lock test passes in the separate PostgreSQL job; its embedded-only restart counterpart passes in PGlite. No test is mislabeled as a live Neon/model/OAuth run.
 

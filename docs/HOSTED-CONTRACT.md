@@ -18,3 +18,7 @@ Scope: a personal Document workspace per authenticated issuer/subject, no worksp
 Failure behavior: reject stale or cross-account operations; never retry mutation calls automatically; remount and clear client state on account changes. Read-only open never creates source. Source data is returned to the widget in MCP `_meta`, with only minimal summaries exposed to model context. Publishing means an immutable private audited BUILD artifact, not public web publication.
 
 Authorization envelope: reversible code/dependency/test work and draft PR in the requested repository; no paid provisioning, credentials, permission expansion, deployment, merge, production migration or real inference calls.
+
+## Repository integration authorization — 2026-10-01
+
+The latest user instruction supersedes only the original draft-only/no-merge envelope: audit exact PR #2 head and hosted evidence, reconcile stale verification status, mark ready and merge when no repository-internal gate remains. SDK-08 still separates implementation and repository integration from external authorization. Vercel/Neon provisioning or deployment, production migration, OAuth-provider rollout, live ChatGPT connection/listing, paid inference, native OpenAI adoption and execution of the exclusive license remain outside this authorization.

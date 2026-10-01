@@ -1,4 +1,4 @@
-> **Hosted slice update:** Apps SDK + Vercel/Neon now has a separate verified adapter. See [hosted acceptance](HOSTED-STATUS.md) and [setup](APPS-SDK-VERCEL-NEON.md). The original module status below is retained as baseline evidence.
+> **Hosted slice update:** Apps SDK + Vercel/Neon has a separate verified adapter; exact PR head `9a75e68283a799d9988b809489724e031851e537` passed Verify Document run `36799703761`. Repository integration is authorized through PR #2; external hosting and authorization remain separate. See [hosted acceptance](HOSTED-STATUS.md) and [setup](APPS-SDK-VERCEL-NEON.md). The original module status below is retained as baseline evidence.
 
 # Current state — Document 1.0
 
