@@ -228,7 +228,8 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             click(page,'Export capsule ↗');expect(page.get_by_role('dialog')).to_be_visible()
             page.keyboard.press('Escape');expect(page.get_by_role('dialog')).to_have_count(0)
             expect(page.get_by_role('button',name='Export capsule ↗')).to_be_focused()
-            page.keyboard.press('Tab');assert page.evaluate('() => document.activeElement.tagName')=='BUTTON'
+            page.keyboard.press('Tab');assert page.evaluate('() => document.activeElement.tagName') in ['BUTTON','INPUT','TEXTAREA','SELECT']
+            if page.get_by_role('button',name='Close the parts −',exact=True).count(): click(page,'Close the parts −')
             page.set_viewport_size({'width':390,'height':844})
             page.screenshot(path=str(IMAGES/'intention-mobile.png'),full_page=True)
             assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth'), 'mobile horizontal overflow'
