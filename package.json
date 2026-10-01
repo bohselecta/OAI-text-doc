@@ -1,0 +1,21 @@
+{
+  "name": "language-canvas-document",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Instruction-native Document module: scoped drafting, audited compilation, portable build contracts.",
+  "license": "LicenseRef-OpenAI-Exclusive",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env src/server/index.mjs",
+    "start": "node --env-file-if-exists=.env src/server/index.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:coverage": "node --test --experimental-test-coverage tests/*.test.mjs",
+    "test:browser": "python tests/browser.py",
+    "build": "node scripts/build.mjs",
+    "check": "npm test && npm run build",
+    "benchmark": "node scripts/benchmark.mjs"
+  }
+}
