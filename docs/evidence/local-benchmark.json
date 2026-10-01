@@ -1,0 +1,33 @@
+{
+  "environment": {
+    "node": "v22.16.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
+  },
+  "scope": "Single-process local workloads. In-memory SQLite, no provider, browser network, concurrent tenants or production disk. Not a production SLA.",
+  "peakRssMiB": 114,
+  "results": [
+    {
+      "name": "compile + structural audit: 17 sections / 7017 bytes",
+      "iterations": 40,
+      "p50Ms": 0.357,
+      "p95Ms": 0.631,
+      "maxMs": 0.681
+    },
+    {
+      "name": "compile + structural audit: 64 sections / 647063 bytes",
+      "iterations": 40,
+      "p50Ms": 22.583,
+      "p95Ms": 32.275,
+      "maxMs": 35.675
+    },
+    {
+      "name": "SQLite in-memory transactional section commit + snapshot + event",
+      "iterations": 40,
+      "p50Ms": 0.293,
+      "p95Ms": 0.658,
+      "maxMs": 0.798
+    }
+  ]
+}

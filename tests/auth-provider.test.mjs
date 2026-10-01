@@ -1,0 +1,48 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { generateKeyPairSync, sign } from 'node:crypto';
+import { authentication, environment } from '../src/server/auth.mjs';
+import { OpenAIProvider, RehearsalProvider, validateEdit } from '../src/server/provider.mjs';
+import { example } from '../src/core/templates.mjs';
+const {publicKey,privateKey}=generateKeyPairSync('rsa',{modulusLength:2048});
+const pub=publicKey.export({type:'spki',format:'pem'});
+const config={auth:'jwt',publicKey:pub,issuer:'https://issuer.example',audience:'document'};
+const now=Math.floor(Date.now()/1000),base={iss:config.issuer,aud:config.audience,sub:'alice',workspace_id:'acme',document_role:'editor',iat:now,exp:now+300};
+function jwt(claims=base,header={alg:'RS256',typ:'JWT'}){const body=[header,claims].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.');return body+'.'+sign('RSA-SHA256',Buffer.from(body),privateKey).toString('base64url');}
+const request=token=>({headers:{authorization:`Bearer ${token}`}});
+test('RS256 identity derives subject, workspace and role from signed claims',()=>assert.deepEqual(authentication(config)(request(jwt())),{sub:'alice',tenant:'acme',role:'editor'}));
+test('JWT supports an audience array',()=>assert.equal(authentication(config)(request(jwt({...base,aud:['other','document']}))).sub,'alice'));
+for(const [name,override] of [['expired',{exp:now-1}],['wrong issuer',{iss:'evil'}],['wrong audience',{aud:'other'}],['future activation',{nbf:now+90}],['future issuance',{iat:now+90}],['excessive lifetime',{exp:now+7200}],['missing subject',{sub:undefined}],['missing tenant',{workspace_id:undefined}],['unknown role',{document_role:'owner'}]])test(`JWT rejects ${name}`,()=>assert.throws(()=>authentication(config)(request(jwt({...base,...override}))),e=>e.status===401));
+test('JWT rejects algorithm confusion',()=>assert.throws(()=>authentication(config)(request(jwt(base,{alg:'HS256'}))),e=>e.status===401));
+test('JWT rejects a modified signature',()=>{const token=jwt();assert.throws(()=>authentication(config)(request(token.slice(0,-10)+'0000000000')),e=>e.status===401);});
+test('JWT rejects unsigned claims',()=>assert.throws(()=>authentication(config)(request('eyJhbGciOiJub25lIn0.e30.')),e=>e.status===401));
+test('missing auth fails closed',()=>assert.throws(()=>authentication(config)({headers:{}}),e=>e.status===401));
+test('local identity cannot bind publicly or run in production',()=>{assert.throws(()=>authentication({auth:'local',host:'0.0.0.0'}));assert.throws(()=>authentication({auth:'local',host:'127.0.0.1',production:true}));});
+test('production configuration requires HTTPS',()=>assert.throws(()=>environment({NODE_ENV:'production',DOCUMENT_ORIGIN:'http://example.com'})));
+test('invalid port or non-origin URL is rejected',()=>{assert.throws(()=>environment({PORT:'abc'}));assert.throws(()=>environment({DOCUMENT_ORIGIN:'https://example.com/path'}));});
+const response=(value,extra={})=>new Response(JSON.stringify({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(value)}]}],...extra}),{status:200,headers:{'content-type':'application/json'}});
+const doc=example(),section=doc.sections[0];
+test('live adapter emits Responses API strict JSON and keeps key out of content',async()=>{
+  let call;const provider=new OpenAIProvider({key:'test-secret-never-log',model:'configured-model',fetcher:async(url,options)=>{call={url,options};return response({sectionId:section.id,content:'A refined goal.'});}});
+  assert.equal((await provider.edit(doc,section,'Be clear.')).content,'A refined goal.');
+  assert.equal(call.url,'https://api.openai.com/v1/responses');const data=JSON.parse(call.options.body);assert.equal(data.store,false);assert.equal(data.text.format.strict,true);assert.equal(data.model,'configured-model');assert.ok(!call.options.body.includes('test-secret'));assert.match(data.instructions,/only section intent/);
+});
+test('model cannot change a different section ID',()=>assert.throws(()=>validateEdit({sectionId:'other',content:'No'},section),e=>e.code==='SCOPE_VIOLATION'));
+test('model cannot smuggle extra writable fields',()=>assert.throws(()=>validateEdit({sectionId:section.id,content:'OK',sections:[]},section),e=>e.code==='SCHEMA'));
+test('model empty output is not a valid replacement',()=>assert.throws(()=>validateEdit({sectionId:section.id,content:''},section)));
+test('provider failures do not leak raw provider error bodies',async()=>{const provider=new OpenAIProvider({key:'secret',model:'m',fetcher:async()=>new Response('secret upstream details',{status:500})});await assert.rejects(()=>provider.edit(doc,section,'Go'),e=>e.code==='PROVIDER_ERROR'&&!e.message.includes('secret'));});
+test('provider rate limit is actionable',async()=>{const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>new Response('',{status:429})});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.status===429);});
+test('provider timeout preserves work and does not silently retry',async()=>{let count=0;const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>{count++;throw new Error('timeout');}});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='PROVIDER_UNAVAILABLE');assert.equal(count,1);});
+test('incomplete model output is rejected',async()=>{const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>response({}, {status:'incomplete'})});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='PROVIDER_INCOMPLETE');});
+test('refusal is handled independently from the output schema',async()=>{const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>response({}, {output:[{type:'message',content:[{type:'refusal',refusal:'No'}]}]})});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='PROVIDER_REFUSAL');});
+test('malformed provider JSON is rejected',async()=>{const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>new Response('not json',{status:200})});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='PROVIDER_JSON');});
+test('provider output body limit is enforced',async()=>{const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>new Response('x'.repeat(1500001),{status:200})});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='PROVIDER_SIZE');});
+test('model input overflow is rejected before a billable call',async()=>{let called=false;const p=new OpenAIProvider({key:'x',model:'m',maxInputBytes:100,fetcher:async()=>{called=true;return response({});}});await assert.rejects(()=>p.edit(doc,section,'Go'),e=>e.code==='MODEL_CONTEXT');assert.equal(called,false);});
+test('fresh-reader receives compiled text, not prior conversation or review',async()=>{const inputs=[];const p=new OpenAIProvider({key:'x',model:'writer',reviewModel:'reviewer',fetcher:async(_url,opt)=>{inputs.push(JSON.parse(opt.body));return response({findings:[],coveredSectionIds:[]});}});await p.review(doc,{content:'Compiled only'},'freshReader');assert.deepEqual(JSON.parse(inputs[0].input),{compiledArtifact:'Compiled only'});assert.equal(inputs[0].model,'reviewer');});
+test('UTF-8 split chunks do not corrupt unicode model output',async()=>{
+ const raw=JSON.stringify({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({sectionId:'intent',content:'Café 🎨 日本語'})}]}]});const bytes=new TextEncoder().encode(raw);
+ const p=new OpenAIProvider({key:'x',model:'m',fetcher:async()=>new Response(new ReadableStream({start(c){for(const b of bytes)c.enqueue(new Uint8Array([b]));c.close();}}))});assert.equal((await p.edit(doc,section,'Go')).content,'Café 🎨 日本語');
+});
+test('rehearsal supports explicit instructional replacement',async()=>{assert.equal((await new RehearsalProvider().edit(doc,section,'Replace with: Exactly this.')).content,'Exactly this.');});
+test('rehearsal rejects unsupported instructions instead of faking an LLM',async()=>await assert.rejects(()=>new RehearsalProvider().edit(doc,section,'Invent a groundbreaking business'),e=>e.code==='REHEARSAL_LIMIT'));
+test('rehearsal never claims semantic review',async()=>await assert.rejects(()=>new RehearsalProvider().review(),e=>e.code==='MODEL_REQUIRED'));

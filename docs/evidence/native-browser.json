@@ -1,0 +1,23 @@
+{
+  "mode": "native Chromium navigation, HTTP, CSP and downloads",
+  "passed": 15,
+  "checks": [
+    "17-section source loads; no manual content-editing surface",
+    "Keyboard scope selection; proposed edit leaves accepted source unchanged",
+    "Accept mutates selected section only; every other section is byte-identical",
+    "Reload persistence and section-only undo retain history",
+    "History integrity display; Escape closes dialog and returns focus",
+    "Locked sections cannot generate; explicit unlock/relock works",
+    "Resolve real audit finding in Draft; structural pass never becomes fake semantic pass",
+    "Actual server exports Markdown and plain text with every source section intact",
+    "Budget overflow is explicit and non-truncating",
+    "Document appears in Spaces reference create menu; host-only controls are honest",
+    "Unsupported rehearsal instruction fails visibly and preserves the instruction",
+    "390-pixel layout, reduced motion, creation dialog and Research spine",
+    "Hybrid spine adds missing kinds without rewriting existing source",
+    "Imported HTML is escaped; no script/image execution",
+    "Light theme renders the same persisted document"
+  ],
+  "pageErrors": [],
+  "providerCalls": 0
+}
