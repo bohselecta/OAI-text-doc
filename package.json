@@ -16,6 +16,24 @@
     "test:browser": "python tests/browser.py",
     "build": "node scripts/build.mjs",
     "check": "npm test && npm run build",
-    "benchmark": "node scripts/benchmark.mjs"
+    "benchmark": "node scripts/benchmark.mjs",
+    "build:hosted": "node scripts/build.mjs && node scripts/build-hosted.mjs",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate-neon.mjs",
+    "test:neon": "node --test tests/neon-store.test.mjs",
+    "dev:apps": "node --env-file-if-exists=.env scripts/dev-apps.mjs",
+    "test:apps-browser": "python tests/apps_browser.py"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.3",
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "jose": "^6.2.12",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "esbuild": "^0.28.2",
+    "pg": "^8.23.1"
   }
 }

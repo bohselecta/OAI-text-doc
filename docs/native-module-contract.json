@@ -1,0 +1,25 @@
+{
+  "baseCommit": "22466c2df904486dd6e67cfc97550fd1a61b6bb8",
+  "description": "Exact existing native-adoptable Document module, local host and legal grant. New hosted adapters are outside this boundary.",
+  "sha256": {
+    "src/core/compiler.mjs": "e75057f6e0e7e0db37dbc7345630a7fd147ada501a1ae205c963f97a58878449",
+    "src/core/contracts.mjs": "5c1ccdef3381b0796afa01e240fd71bf967f4d83d8144e69eeb7549d808fcf6e",
+    "src/core/importer.mjs": "e4ee245c62ab2e37a4a33b3b0052ec32cb1c6605366b6904322d068bf2e082c4",
+    "src/core/templates.mjs": "f2ff9883261548e000075300caa445c75666763fdcb6b49b03307dc72159482a",
+    "src/server/app.mjs": "554223518dbc4a22e09887384782a5e11d6ce87081e269e00a820138f5893308",
+    "src/server/auth.mjs": "357c07cbd7421803eed1373fce1c428da0428f79f5c7d0d50ad4760c25dc5560",
+    "src/server/index.mjs": "13b1bbda12d6bdd4d8e0fff936446c78574fafa88ff1ba2e744b359f03dcd55b",
+    "src/server/provider.mjs": "99874f5f9ea206cda6803bacfc08c604e85ed53cc040232a1727ef9c8d67e2ef",
+    "src/server/store.mjs": "12011aaa84f74abc9c6ce2041c8ff1fec284e4b14192e74dc76a14643f0a1ed7",
+    "src/ui/bootstrap.mjs": "423b5d6beed62b64db69cc90ff2e9cf9c8329a3d598a285db8060d2f53b6bede",
+    "src/ui/document.css": "3f741c37d52e7a73fb3259c8dd1c7b0adb411903c8ab702fa7f0f8486bb4a7cd",
+    "src/ui/document.d.ts": "b91480317a5e93c1b5badf5bc27935d7ce50815332b01b58ebe5add0626edbff",
+    "src/ui/document.mjs": "562a5623060b636813178b3c06f0d2aa0a83a0046a833a8cdc98c9d2612cee1e",
+    "src/ui/document.svg": "885be774d1f110fbe8f4908c673df64e9c53bea7fef8f31db51f09e4dab9d37c",
+    "src/ui/index.html": "a1ce0b959571f6badd0a72f8d8947bd1c1aa350894ee004452c3b5d2daadd466",
+    "src/ui/presentation.mjs": "7f2fe65a777372b681ab06cdd19b01914f7aed916c3a16b2741eca625e9b9209",
+    "src/ui/shell.css": "3051e3e7da3c3e444b3e58972e0ec4634cd42a28e613f31687dbb19218bd3b8a",
+    "LICENSE.md": "c84eedf64d706ee11a405e2944baf67b1eb8146e78d555e21fa94b98d643aa0d",
+    "legal/OPENAI-EXCLUSIVE-GRANT.md": "fcdd4edd71f44ea0a9f86dbd50fa94e32d19a7bb0923578d8313d12e40e8ed54"
+  }
+}

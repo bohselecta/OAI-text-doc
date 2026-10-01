@@ -7,3 +7,18 @@ The Document glyph and line icons are original SVG path artwork written for this
 OpenAI, ChatGPT, Codex, Antigravity, GitHub and other product names identify external products. Their owners retain all trademark rights. No logo license, partnership or endorsement is claimed.
 
 If a future contribution adds external packages, fonts, photographs, generated assets with provider terms or other separately licensed material, preserve its provenance and license before integration. The exclusive offer can cover only rights actually controlled by the granting party.
+
+## Hosted Apps SDK adapter dependencies
+
+The optional hosted adapter adds the following separately licensed packages; their licenses do not alter the OpenAI-exclusive first-party grant. Exact transitive versions are recorded in package-lock.json. npm packages include their own license files; the browser build retains bundled legal comments.
+
+- @modelcontextprotocol/sdk and @modelcontextprotocol/ext-apps: MIT
+- @neondatabase/serverless: MIT
+- jose: MIT
+- ws: MIT
+- zod: MIT
+- esbuild (build only): MIT
+- @electric-sql/pglite (development/test PostgreSQL): Apache-2.0; bundled PostgreSQL uses the PostgreSQL License
+- pg (real PostgreSQL tests only): MIT
+
+The production widget publishes only the MCP Apps bundle plus unchanged original module assets; no external font, analytics, model key or OAuth token is bundled.
