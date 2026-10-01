@@ -104,3 +104,9 @@ The [source contract](docs/CONTRACT.md), [security boundary](SECURITY.md), [veri
 **Source-visible, not open source.** First-party work is reserved for an OpenAI-exclusive licensing arrangement. [LICENSE.md](LICENSE.md) gives the exact interim permissions; [the exclusive-grant instrument](legal/OPENAI-EXCLUSIVE-GRANT.md) requires the rights holder’s signature and the designated OpenAI legal entity before an exclusive transfer is represented as executed. No signature, endorsement or acceptance has been invented.
 
 No OpenAI trademarks are licensed by this project. Dependencies and development tools retain their own terms. See [third-party notices](THIRD_PARTY_NOTICES.md). Report reproducible implementation issues through this repository without attaching credentials or private document content. For security reporting, follow [SECURITY.md](SECURITY.md).
+
+## Next vertical slice: Apps SDK + Vercel / Neon
+
+The hosted adapter now lives outside the unchanged native-adoptable module. It adds MCP Apps tools/widget, OAuth resource-server verification and transactional PostgreSQL persistence, with a Vercel function boundary. The original local SQLite workflow is preserved byte-for-byte.
+
+Start a credential-free, clearly labeled local MCP Apps rehearsal with `npm run dev:apps`. See [setup and deployment boundaries](docs/APPS-SDK-VERCEL-NEON.md), [frozen hosted contract](docs/HOSTED-CONTRACT.md), and [verification status](docs/HOSTED-STATUS.md). Hosted infrastructure, OAuth provider setup, real model calls and native OpenAI adoption remain separate authorization/acceptance gates.

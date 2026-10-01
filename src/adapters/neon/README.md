@@ -1,0 +1,23 @@
+# PostgreSQL / Neon adapter
+
+`NeonStore({ pool })` implements the reference Store API asynchronously. Await every call. It borrows a `pg`-compatible pool; `close()` only closes pools created with `ownsPool: true`. Production `createNeonStore()` creates a Neon WebSocket Pool **inside each serverless request**, checks schema version, and owns it. Always `await store.close()` in the request's `finally` block. `DATABASE_URL` is server-only. No migration or resource provisioning happens during requests.
+
+Run `migrateNeon(pool)` explicitly using an authorized migration role before serving traffic. It acquires a PostgreSQL transaction-scoped advisory lock, runs `migrations/001_document.sql`, and rejects unknown newer versions. Application queries require only table reads/inserts/updates plus lease deletion and identity-sequence usage; production roles, least privilege, backup/restore and retention must be verified by the operator. Tenant isolation is enforced by composite keys and parameterized tenant predicates; this adapter does not claim database row-level security.
+
+## Preserved contract
+
+Source, snapshots, proposals, audit reports and release payloads remain JSON **TEXT**, rather than JSONB, so serialized property ordering and SHA-256 inputs do not change. Draft commits use one checked-out connection for BEGIN, `SELECT ... FOR UPDATE`, revision/source/actor/lock checks, source update, snapshot, event and proposal status, then COMMIT. The update also compares the previous revision. All event-producing operations lock the document row before reading the chain head. A separate tenant row lock serializes first document creation and the 200-document capacity check. Releases have a unique `(tenant, document, audit)` key; their content is immutable in the application, not tamper-proof against a privileged database operator.
+
+`meter(actor)` persists a 30-mutations/minute fixed window per tenant/actor using the database clock. `acquireInference(actor)` permits one active model operation per actor and eight per tenant; it returns an awaited release function. A random lease token prevents late completion from clearing a replacement lease. Leases expire after 180 seconds for crash recovery. The service must bound model work below that duration (150 seconds maximum). A lease is admission control, not cancellation: it does not terminate an external provider call. Durable rate rows retain one record per observed actor; production retention must be managed separately.
+
+## Verification and limits
+
+`node --test tests/neon-store.test.mjs` defaults to **PGlite, an embedded PostgreSQL engine**, without credentials or a hosted resource. It executes actual SQL, constraints, transactions, rollback and a disk-backed restart. PGlite has one connection; the fixture serializes checkouts. Promise concurrency tests in this mode verify behavior under serialized scheduling, **not** multi-connection row-lock contention or Neon network behavior. The real row-lock test is explicitly skipped.
+
+To test actual connection contention, point `DOCUMENT_TEST_DATABASE_URL` at a disposable PostgreSQL database and run the same command. The suite creates a unique temporary schema, uses a real `pg` Pool with multiple connections, and drops only that generated schema afterward. It never reads `DATABASE_URL` for testing. This opt-in mode requires permission to create a schema. The dedicated row-lock test checks blocking and post-lock revision rejection; the same acceptance, publication, capacity and rate races also run over independent connections.
+
+Observed locally on 2026-10-01 with Node 24.19.0: the 27-test adapter suite passed in both modes. PGlite passed 26 checks (including disk restart) with the real-lock check explicitly skipped. A disposable PostgreSQL 18.4 process on loopback passed 26 checks (including true multi-connection lock contention), with only the PGlite-specific restart check skipped. Across both runs every check ran successfully. The temporary PostgreSQL server was stopped after testing; no hosted credentials or resources were used.
+
+Still required before production: authorized Neon connectivity, pool/request lifecycle smoke test on Vercel, real multi-instance load tests, identity/tenant configuration, retention/backup restoration, hosted-origin checks and any authorized live-provider review. Embedded fixtures are not evidence that those checks passed.
+
+References: [Neon serverless driver](https://github.com/neondatabase/serverless#readme), [PGlite API](https://pglite.dev/docs/api), [PGlite single-connection limitation](https://pglite.dev/docs/pglite-socket).

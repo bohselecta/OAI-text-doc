@@ -7,4 +7,4 @@ rmSync('dist',{recursive:true,force:true});mkdirSync('dist',{recursive:true});
 cpSync('src','dist/src',{recursive:true});cpSync('package.json','dist/package.json');
 const files=walk('dist');
 writeFileSync('dist/manifest.json',JSON.stringify({version:'1.0.0',files:Object.fromEntries(files.map(f=>[f.slice(5),createHash('sha256').update(readFileSync(f)).digest('hex')]))},null,2));
-console.log(`Built ${files.length} dependency-free runtime files; all JavaScript syntax checked.`);
+console.log(`Built ${files.length} runtime files; all JavaScript syntax checked (native reference remains dependency-free).`);
