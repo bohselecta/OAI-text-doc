@@ -133,9 +133,12 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             second.locator('#import-file').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{broken'})
             idle(second);expect(second.get_by_role('alert')).to_contain_text('valid capsule JSON')
             expect(second.get_by_label('Current result')).to_contain_text('Notice one small change')
+            before_import_id=second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")
             malicious=reexport.read_text().replace('<body>','<body><script>window.IMPORTED_ATTACK=true</script><img src="https://invalid.example/spy">')
             second.locator('#import-file').set_input_files({'name':'import.html','mimeType':'text/html','buffer':malicious.encode()})
-            idle(second);assert second.evaluate('() => window.IMPORTED_ATTACK') is None
+            idle(second);expect(second.get_by_role('status')).to_contain_text('imported as a new record')
+            assert second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")!=before_import_id
+            assert second.evaluate('() => window.IMPORTED_ATTACK') is None
             checks.append('Malformed import preserves current work; importing HTML never executes its scripts')
             imported_id=second.evaluate("() => JSON.parse(localStorage.getItem('language-canvas:intention:'+sessionStorage.getItem('language-canvas:current-file:'+location.pathname))).id")
             second.reload(wait_until='load')

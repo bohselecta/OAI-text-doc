@@ -15,5 +15,7 @@ export async function makeCapsule(project,{runtime,css}){
 export function parseCapsule(text){
  if(typeof text!=='string'||text.length>MAX_CAPSULE_BYTES)throw new Error('The import exceeds the capsule size limit.');
  if(text.trim().startsWith('{')){let value;try{value=JSON.parse(text);}catch{return importProject(text);}return value?.sections?fromDocument(value):decodeState(text);}
- const nodes=[...text.matchAll(/<script\b(?=[^>]*\bid=["']capsule-state["'])(?=[^>]*\btype=["']application\/json["'])[^>]*>([\s\S]*?)<\/script\s*>/gi)];if(nodes.length!==1)throw new Error('Choose a Language Canvas HTML capsule or JSON backup.');return decodeState(nodes[0][1]);
+ // Consume each complete script block before testing its attributes. Otherwise the
+ // HTML template string inside our own bundled runtime looks like another state tag.
+ const nodes=[...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)].filter(m=>/(?:^|\s)id\s*=\s*["']capsule-state["']/i.test(m[1])&&/(?:^|\s)type\s*=\s*["']application\/json["']/i.test(m[1]));if(nodes.length!==1)throw new Error('Choose a Language Canvas HTML capsule or JSON backup.');return decodeState(nodes[0][2]);
 }
