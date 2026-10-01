@@ -1,3 +1,5 @@
+> **Hosted slice update:** Apps SDK + Vercel/Neon now has a separate verified adapter. See [hosted acceptance](HOSTED-STATUS.md) and [setup](APPS-SDK-VERCEL-NEON.md). The original module status below is retained as baseline evidence.
+
 # Current state — Document 1.0
 
 **Working, enterprise-oriented reference module. Production host acceptance remains a separate gate.**

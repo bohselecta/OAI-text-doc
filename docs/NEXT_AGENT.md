@@ -1,3 +1,5 @@
+> **Current continuation:** The additive Apps SDK/Vercel/Neon slice is in draft PR #2. Read [hosted status](HOSTED-STATUS.md), [setup](APPS-SDK-VERCEL-NEON.md), and [frozen native hashes](native-module-contract.json) first. Do not alter the preserved module or infer deployment/merge approval.
+
 # Next agent — start here
 
 Read root `AGENTS.md`, `docs/STATUS.md`, `docs/CONTRACT.md`, `docs/ARCHITECTURE.md` and `SECURITY.md`. Inspect the checked-out branch, current source and CI before making changes. Do not replace this working module with a scaffold or treat prior prose as stronger evidence than the code.

@@ -1,0 +1,75 @@
+{
+  "verifiedRuntimeCommit": "391500f067295509de34b47c0facdcf9413b2877",
+  "baseCommit": "22466c2df904486dd6e67cfc97550fd1a61b6bb8",
+  "ciRun": "https://github.com/bohselecta/OAI-text-doc/actions/runs/36799320218",
+  "localNodeVersion": "24.19.0",
+  "ciNodeVersions": [
+    22,
+    24
+  ],
+  "nodeTests": {
+    "total": 286,
+    "passed": 285,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "real PostgreSQL multi-connection lock check is skipped in default PGlite mode and passes in separate PostgreSQL suite"
+  },
+  "postgresqlTests": {
+    "versions": [
+      "17 (CI)",
+      "18.4 (disposable local TCP)"
+    ],
+    "passed": 26,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "embedded restart check runs separately under PGlite"
+  },
+  "nativeBrowser": {
+    "passedGroups": 15,
+    "pageErrors": 0
+  },
+  "appsBrowser": {
+    "passedGroups": 10,
+    "pageErrors": 0,
+    "transport": "sandboxed MCP Apps iframe -> StreamableHTTP -> embedded PostgreSQL"
+  },
+  "liveChatGPT": false,
+  "liveOAuth": false,
+  "liveNeon": false,
+  "liveVercel": false,
+  "paidProviderCalls": 0,
+  "sourceSha256": {
+    "src/adapters/apps/bridge.mjs": "7c2e385ef4b3488451b18230a12dd39de1b399b6e7443db46a216d0b4d4aae1f",
+    "src/adapters/apps/resize.mjs": "416e52aee47d4cd932014c1e7f96d2fe76c8c21ad2732619b38e6a3e8ff7fce8",
+    "src/adapters/apps/routes.mjs": "6c9383910171ab78799318ade0e256ee7c7cdbe6e156e5c726f688eaad1a3c9e",
+    "src/adapters/apps/server.mjs": "ed7de42a5675f54cc35a2690c0061449ee47433ae3fac4ba223d15bd62019763",
+    "src/adapters/apps/widget.mjs": "edcf76e8cca04f176a99bf29910e2206cbd26734e568b0dca5971ff37a798941",
+    "src/adapters/export.mjs": "c79c15dd3298e27a35780d218586764cae1758d755142a20f7d89fd326508176",
+    "src/adapters/hosted.mjs": "9f4971980e2e9779a04262c825c55bb91cbc9b0d91a292962ef7dc2fe8c59b6e",
+    "src/adapters/neon/index.mjs": "3529236f5cd108519c3a0be7a0b2ee4fa82fd80caa3ede85d654c84c56c75ed4",
+    "src/adapters/neon/migrate.mjs": "1bff9c1b7a78997827313879df1c5d47c5765c281d9856be53efc0fe09eecf8b",
+    "src/adapters/neon/store.mjs": "183afa37233d5c5793ce8c739791a82860ecaca4d0bd5596de754244ebc9156c",
+    "src/adapters/neon/transaction.mjs": "699ad34610a6583f15044df505a83ddade74eb14c919e5c5acf79958dcc61fff",
+    "src/adapters/oauth.mjs": "3796a82d1fbe27bace6d32f710387f7b264065a4ad2ee6059a22b10d90631e83",
+    "src/adapters/service.mjs": "d985acd802c5670e9bd5aa5d98eebe0a4865bde16dd009b5831b86e93778b13d",
+    "src/core/compiler.mjs": "e75057f6e0e7e0db37dbc7345630a7fd147ada501a1ae205c963f97a58878449",
+    "src/core/contracts.mjs": "5c1ccdef3381b0796afa01e240fd71bf967f4d83d8144e69eeb7549d808fcf6e",
+    "src/core/importer.mjs": "e4ee245c62ab2e37a4a33b3b0052ec32cb1c6605366b6904322d068bf2e082c4",
+    "src/core/templates.mjs": "f2ff9883261548e000075300caa445c75666763fdcb6b49b03307dc72159482a",
+    "src/server/app.mjs": "554223518dbc4a22e09887384782a5e11d6ce87081e269e00a820138f5893308",
+    "src/server/auth.mjs": "357c07cbd7421803eed1373fce1c428da0428f79f5c7d0d50ad4760c25dc5560",
+    "src/server/index.mjs": "13b1bbda12d6bdd4d8e0fff936446c78574fafa88ff1ba2e744b359f03dcd55b",
+    "src/server/provider.mjs": "99874f5f9ea206cda6803bacfc08c604e85ed53cc040232a1727ef9c8d67e2ef",
+    "src/server/store.mjs": "12011aaa84f74abc9c6ce2041c8ff1fec284e4b14192e74dc76a14643f0a1ed7",
+    "src/ui/bootstrap.mjs": "423b5d6beed62b64db69cc90ff2e9cf9c8329a3d598a285db8060d2f53b6bede",
+    "src/ui/document.css": "3f741c37d52e7a73fb3259c8dd1c7b0adb411903c8ab702fa7f0f8486bb4a7cd",
+    "src/ui/document.d.ts": "b91480317a5e93c1b5badf5bc27935d7ce50815332b01b58ebe5add0626edbff",
+    "src/ui/document.mjs": "562a5623060b636813178b3c06f0d2aa0a83a0046a833a8cdc98c9d2612cee1e",
+    "src/ui/document.svg": "885be774d1f110fbe8f4908c673df64e9c53bea7fef8f31db51f09e4dab9d37c",
+    "src/ui/index.html": "a1ce0b959571f6badd0a72f8d8947bd1c1aa350894ee004452c3b5d2daadd466",
+    "src/ui/presentation.mjs": "7f2fe65a777372b681ab06cdd19b01914f7aed916c3a16b2741eca625e9b9209",
+    "src/ui/shell.css": "3051e3e7da3c3e444b3e58972e0ec4634cd42a28e613f31687dbb19218bd3b8a",
+    "api/index.mjs": "b0fbfff4614ef32b2372895434927924f68f15015e3e68810dec10e6228329e4",
+    "vercel.json": "181afc03502dbc51243feb7796610160d2fd94e0c8afea46901f61b6fddb8d63"
+  }
+}

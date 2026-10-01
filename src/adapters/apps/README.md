@@ -60,13 +60,18 @@ its private state, and fence in-flight results. No mutation is automatically
 replayed after a transport failure. Loopback auto-example seeding is disabled
 in Apps session metadata, so opening the read-only tool cannot create data.
 
+SDK auto-resize is disabled. The adapter owns its ResizeObserver and queued
+animation frame, disposes both before retry/close/teardown, and fences late
+sends. Connection errors sit outside document layout so host resizing cannot
+create a status-height feedback loop.
+
 ## Evidence and limits
 
 `node --test tests/apps*.test.mjs` exercises actual MCP registration and
 Streamable HTTP, schemas and data minimization, complete shared-service edit /
 export / publication-gate paths, plus lifecycle, stale-response, retry and
 download behavior. Successful model reviews in tests are labeled fixtures.
-Parent integration checks separately cover the actual sandboxed host browser,
+Integration checks separately cover the actual sandboxed host browser,
 OAuth verifier and Postgres store. These do not establish an approved ChatGPT
 listing, a live OAuth deployment, paid-model quality, or production readiness.
 

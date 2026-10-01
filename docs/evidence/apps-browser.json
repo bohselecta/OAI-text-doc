@@ -1,0 +1,21 @@
+{
+  "mode": "native Chromium sandboxed MCP Apps + HTTP + embedded PostgreSQL rehearsal",
+  "checks": [
+    "Read-only open initializes an empty opaque-sandbox app without seeding source",
+    "Exact native component creates and renders a document through MCP tools and PostgreSQL",
+    "Scoped proposal leaves canonical source unchanged until explicit acceptance",
+    "Accepted revision changes exactly one section; stale-safe durable path exercised",
+    "Publish derives a structural audit without mutating Draft; rehearsal release remains blocked",
+    "MCP Apps host download exports complete BUILD draft with honest audit receipt",
+    "History, rejected instruction recovery and saved-source integrity survive the bridge",
+    "Reload rehydrates persisted PostgreSQL source over MCP",
+    "Mobile 390px and keyboard-focus/reduced-motion canvas inspected",
+    "Failed initialization retries successfully; resized reconnected host has no stale observer errors"
+  ],
+  "passed": 10,
+  "pageErrors": [],
+  "liveChatGPT": false,
+  "liveNeon": false,
+  "liveOAuth": false,
+  "providerCalls": 0
+}
