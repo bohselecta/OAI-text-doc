@@ -7,7 +7,7 @@ import { IntentionStore } from './store.mjs';
 import { IntentionProvider } from './provider.mjs';
 import { MAX_BYTES,fail,localProposal,validateScope } from './state.mjs';
 const ROOT=fileURLToPath(new URL('./',import.meta.url));
-const files=new Map([['/',['index.html','text/html']],['/workspace.mjs',['workspace.mjs','text/javascript']],['/state.mjs',['state.mjs','text/javascript']],['/capsule.mjs',['capsule.mjs','text/javascript']],['/workspace.css',['workspace.css','text/css']]]);
+const files=new Map([['/',['index.html','text/html']],['/workspace.mjs',['workspace.mjs','text/javascript']],['/state.mjs',['state.mjs','text/javascript']],['/capsule.mjs',['capsule.mjs','text/javascript']],['/document-bridge.mjs',['document-bridge.mjs','text/javascript']],['/workspace.css',['workspace.css','text/css']]]);
 function exact(value,keys){if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||keys.some(k=>!(k in value)))fail('SCHEMA','Unsupported or missing request fields.');}
 async function body(req){if(!(req.headers['content-type']??'').startsWith('application/json'))fail('CONTENT_TYPE','Use a JSON request.',415);let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>MAX_BYTES+20000)fail('SIZE','Request exceeds the capsule size limit.',413);chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{fail('JSON','Invalid JSON request.');}}
 export function createIntentionServer({store,provider=null,authenticate,origin,production=false}){
@@ -17,6 +17,7 @@ export function createIntentionServer({store,provider=null,authenticate,origin,p
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
   if(req.headers.host!==new URL(origin).host||req.headers.origin&&req.headers.origin!==origin)fail('ORIGIN','Use the configured application origin.',403);
   const url=new URL(req.url,origin);if(url.search)fail('ROUTE','Unexpected query parameters.');const path=url.pathname;
+  if(req.method==='GET'&&path==='/core/contracts.mjs'){res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});res.end(readFileSync(fileURLToPath(new URL('../core/contracts.mjs',import.meta.url))));return;}
   if(req.method==='GET'&&path==='/capsule-runtime.js'){res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});res.end(readFileSync(fileURLToPath(new URL('../../dist/intention/capsule-runtime.js',import.meta.url))));return;}
   if(req.method==='GET'&&files.has(path)){const [file,type]=files.get(path);res.writeHead(200,{'Content-Type':type+'; charset=utf-8'});res.end(readFileSync(ROOT+file));return;}
   if(path==='/healthz'&&req.method==='GET'){json(200,{status:'ok'});return;}

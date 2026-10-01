@@ -2,7 +2,7 @@
 """Native Chromium end-to-end acceptance. All model replies are labelled test fixtures.
 No paid provider calls, HTTP interception, or altered production security policy.
 """
-import json, os, socket, subprocess, tempfile, time, urllib.request
+import base64, re, json, os, socket, subprocess, tempfile, time, urllib.request
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 ROOT=Path(__file__).resolve().parents[1]
@@ -82,7 +82,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             click(page,'Propose change ↗');expect(page.get_by_role('alert')).to_contain_text('Unlock this part')
             click(page,'Unlock part')
             checks.append('Part-local exact instruction, proposal acceptance and lock rejection work through HTTP')
-            click(page,'Back to the whole');page.reload(wait_until='networkidle')
+            click(page,'← Back to the whole');page.reload(wait_until='networkidle')
             expect(page.get_by_label('Current result')).to_contain_text('Begin with one container')
             click(page,'Constraints & acceptance')
             page.get_by_label('Constraints · one per line').fill('No pesticides\nKeep it approachable')
@@ -90,11 +90,23 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             click(page,'Save boundaries');click(page,'The whole')
             page.screenshot(path=str(IMAGES/'intention-whole-local.png'),full_page=True)
             checks.append('Whole preview, explicit constraints and refresh recovery retain accepted state')
+            click(page,'Constraints & acceptance')
+            invalid_constraints='\n'.join('Constraint '+str(i) for i in range(65))
+            page.get_by_label('Constraints · one per line').fill(invalid_constraints)
+            page.get_by_label('Acceptance · one per line').fill('Keep this unsaved acceptance')
+            click(page,'Save boundaries');expect(page.get_by_role('alert')).to_be_visible()
+            expect(page.get_by_label('Constraints · one per line')).to_have_value(invalid_constraints)
+            expect(page.get_by_label('Acceptance · one per line')).to_have_value('Keep this unsaved acceptance')
+            click(page,'Reload');expect(page.get_by_label('Constraints · one per line')).to_have_value('No pesticides\nKeep it approachable')
+            click(page,'The whole')
+            checks.append('Failed boundary saves retain every typed value; explicit reload restores saved values')
             capsule=export(page,'Interactive HTML capsule ↗',REPORT/'local.capsule.html')
             backup=export(page,'Structured JSON backup',REPORT/'local.capsule.json')
             source=json.loads(backup.read_text());assert source['parts'][0]['content'].startswith('Begin with one container')
             handoff=export(page,'BUILD handoff · Markdown',REPORT/'BUILD.md');assert source['parts'][0]['content'] in handoff.read_text()
-            checks.append('Native HTML, JSON and BUILD downloads preserve complete accepted source')
+            native=export(page,'Native Document JSON',REPORT/'document.canvas.json')
+            native_doc=json.loads(native.read_text());assert any(p['content']==source['parts'][0]['content'] for p in native_doc['sections'])
+            checks.append('Native HTML, JSON, canonical Document and BUILD downloads preserve complete accepted source')
             # Native file navigation of the actual generated file. It is not served by a model host.
             offline=context.new_page();offline.on('pageerror',lambda error:errors.append(str(error)))
             network=[];offline.on('request',lambda req:network.append(req.url) if req.url.startswith(('http:','https:')) else None)
@@ -120,6 +132,40 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             second.locator('#import-file').set_input_files({'name':'import.html','mimeType':'text/html','buffer':malicious.encode()})
             idle(second);assert second.evaluate('() => window.IMPORTED_ATTACK') is None
             checks.append('Malformed import preserves current work; importing HTML never executes its scripts')
+            imported_id=second.evaluate("() => JSON.parse(localStorage.getItem('language-canvas:intention:'+sessionStorage.getItem('language-canvas:current-file:'+location.pathname))).id")
+            second.reload(wait_until='load')
+            assert second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")==imported_id
+            click(second,'Start another intention')
+            expect(second.locator('.recent button')).not_to_have_count(0)
+            second.get_by_label('Here’s what I want to make',exact=True).fill('A second offline intention')
+            click(second,'Begin →');second.reload(wait_until='load')
+            expect(second.get_by_role('heading',name='A second offline intention',exact=True)).to_be_visible()
+            click(second,'Start another intention');expect(second.locator('.recent')).to_contain_text('A second offline intention')
+            checks.append('Offline newly created and imported records remain discoverable and selected after refresh')
+            # The same file URL can later contain a different branch at the same revision.
+            raw=capsule.read_text();match=re.search(r'(<script id="capsule-state" type="application/json">)(.*?)(</script>)',raw,re.S)
+            payload=json.loads(match.group(2));original=json.loads(base64.b64decode(payload['data']))
+            hostile='Literal </script><script>window.CAPSULE_ATTACK=true</script> <img src=https://invalid.example/spy> & snow 雪'
+            fork=json.loads(json.dumps(original));fork['title']='A safe portable fork';fork['intention']=hostile;fork['parts'][0]['content']=hostile
+            fork_payload=json.dumps({'encoding':'base64-utf8','data':base64.b64encode(json.dumps(fork,ensure_ascii=False).encode()).decode()})
+            fork_html=raw[:match.start(2)]+fork_payload+raw[match.end(2):]
+            fork_path=REPORT/'fork.capsule.html';fork_path.write_text(fork_html)
+            fork_page=context.new_page();fork_network=[]
+            fork_page.on('request',lambda req:fork_network.append(req.url) if req.url.startswith(('http:','https:')) else None)
+            fork_page.goto(fork_path.resolve().as_uri(),wait_until='load')
+            # Install an existing conflicting browser branch at the same revision, then reopen file.
+            fork_page.evaluate("p => {localStorage.setItem('language-canvas:intention:'+p.id,JSON.stringify(p));sessionStorage.removeItem('language-canvas:current-file:'+location.pathname)}",original)
+            fork_page.reload(wait_until='load')
+            expect(fork_page.get_by_role('status')).to_contain_text('both versions remain safe')
+            assert fork_page.evaluate("id => JSON.parse(localStorage.getItem('language-canvas:intention:'+id)).intention",original['id'])==original['intention']
+            assert fork_page.evaluate('() => window.CAPSULE_ATTACK') is None
+            expect(fork_page.get_by_label('Current result')).to_contain_text('Literal </script>')
+            hostile_export=export(fork_page,'Interactive HTML capsule ↗',REPORT/'hostile-reexport.capsule.html')
+            hostile_page=context.new_page();hostile_page.goto(hostile_export.resolve().as_uri(),wait_until='load')
+            assert hostile_page.evaluate('() => window.CAPSULE_ATTACK') is None
+            expect(hostile_page.get_by_label('Current result')).to_contain_text('snow 雪')
+            assert not fork_network,fork_network
+            checks.append('Equal-revision portable forks preserve both histories; hostile Unicode/HTML remains literal through native file execution and reexport')
             # Connected boundary uses an explicit deterministic fixture, never a live provider.
             page.goto(origin,wait_until='networkidle')
             page.get_by_label('Here’s what I want to make',exact=True).fill('A quiet field guide for first-time gardeners')
@@ -141,15 +187,15 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             expect(page.locator('.part-content')).to_contain_text('balcony herb garden')
             expect(page.get_by_role('button',name='Approve related changes')).to_be_enabled()
             click(page,'Keep only my first edit')
-            click(page,'Back to the whole')
+            click(page,'← Back to the whole')
             page.get_by_role('button',name='From seed to first harvest',exact=False).first.click();idle(page)
             expect(page.locator('.part-content')).to_contain_text('Choose a container with drainage')
             checks.append('Connected whole creation produces nested structure and a material decision; local edit cannot propagate without separate approval')
-            click(page,'Back to the whole')
+            click(page,'← Back to the whole')
             page.get_by_role('button',name='The small garden',exact=False).first.click();idle(page)
             page.get_by_label('Instruction for this part',exact=False).fill('Focus on balcony herbs again')
             click(page,'Propose change ↗');click(page,'Accept this development');click(page,'Approve related changes')
-            click(page,'Back to the whole')
+            click(page,'← Back to the whole')
             page.get_by_role('button',name='From seed to first harvest',exact=False).first.click();idle(page)
             expect(page.locator('.part-content')).to_contain_text('balcony-safe containers')
             page.get_by_role('button',name='The first week',exact=False).last.click();idle(page)
@@ -175,10 +221,16 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             # Dialog keyboard trap and Escape, responsive tree and no horizontal overflow.
             click(page,'Export capsule ↗');expect(page.get_by_role('dialog')).to_be_visible()
             page.keyboard.press('Escape');expect(page.get_by_role('dialog')).to_have_count(0)
+            expect(page.get_by_role('button',name='Export capsule ↗')).to_be_focused()
             page.keyboard.press('Tab');assert page.evaluate('() => document.activeElement.tagName')=='BUTTON'
             page.set_viewport_size({'width':390,'height':844})
             page.screenshot(path=str(IMAGES/'intention-mobile.png'),full_page=True)
             assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth'), 'mobile horizontal overflow'
+            click(page,'Constraints & acceptance');click(page,'The whole')
+            expect(page.get_by_role('heading',name='Current result')).to_be_visible()
+            click(page,'Revision history');click(page,'The whole')
+            expect(page.get_by_role('heading',name='Current result')).to_be_visible()
+            expect(page.get_by_role('button',name='All intentions')).to_be_visible()
             expect(page.get_by_role('button',name='Open the parts ↗')).to_be_visible()
             click(page,'Open the parts ↗');page.get_by_role('button',name='The small garden',exact=False).last.click();idle(page)
             expect(page.get_by_role('heading',name='The small garden')).to_be_visible()
