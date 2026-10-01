@@ -26,10 +26,12 @@ function bootstrap(result) {
  * source, rendering, styles and Draft/Publish handlers remain unchanged.
  * No fetch patch, bearer token, browser storage or model-context update is used.
  */
-export function createDocumentWidgetController({createApp,loadModule,createElement,root,onStatus=()=>{},initialResultDelay=150}) {
+export function createDocumentWidgetController({createApp,loadModule,createElement,root,onStatus=()=>{},observeSize=()=>()=>{},initialResultDelay=150}) {
   let app,element=null,ready=false,disposed=false,connection=0,view=0,latest,opening,startPromise,moduleReady=false,received=0;
   let lastRequestId=null,latestInput={},retryNumber=0;
   const timers=new Map();
+  let resizeCleanup=null;
+  function stopResize(){resizeCleanup?.();resizeCleanup=null;}
   function clearView() {
     ++view;
     if(element) {
@@ -126,6 +128,7 @@ export function createDocumentWidgetController({createApp,loadModule,createEleme
   function start() {
     if(disposed)throw stale();
     if(startPromise)return startPromise;
+    stopResize();
     const current=++connection;ready=false;clearView();latest=null;lastRequestId=null;latestInput={};opening=null;
     const oldApp=app;app=createApp();const ownApp=app;
     onStatus('Connecting to Document…',false);
@@ -136,20 +139,20 @@ export function createDocumentWidgetController({createApp,loadModule,createEleme
     // Keep the transport open long enough for the SDK to acknowledge teardown.
     // The host then removes the iframe; pagehide closes its transport.
     ownApp.onteardown=async()=>{dispose(false);return {};};
-    ownApp.onclose=()=>{if(current===connection&&!disposed){ready=false;clearView();showError(appError('APP_CLOSED','The Document host connection closed. Retry the connection.'));}};
+    ownApp.onclose=()=>{if(current===connection&&!disposed){ready=false;stopResize();clearView();showError(appError('APP_CLOSED','The Document host connection closed. Retry the connection.'));}};
     startPromise=(async()=>{
       try {
         if(oldApp)await oldApp.close().catch(()=>{});
         await Promise.all([ownApp.connect(undefined,{timeout:10000}),moduleReady?Promise.resolve():loadModule(retryNumber++).then(()=>{moduleReady=true;})]);
         if(current!==connection||disposed)return;
-        ready=true;
+        ready=true;resizeCleanup=observeSize(ownApp);
         if(latest){mount(latest);return;}
         await new Promise(resolve=>{const timer=setTimeout(()=>{timers.delete(timer);resolve();},initialResultDelay);timers.set(timer,resolve);});
         if(current!==connection||disposed)return;
         if(!latest)await reopen();
       } catch(error) {
         if(current!==connection||disposed)return;
-        ready=false;clearView();showError(appError('APP_INIT','Document could not initialize its host connection or load the canvas. Retry the connection.'));
+        ready=false;stopResize();clearView();showError(appError('APP_INIT','Document could not initialize its host connection or load the canvas. Retry the connection.'));
         ++connection;await ownApp.close().catch(()=>{});
       }
     })().finally(()=>{startPromise=null;});
@@ -157,7 +160,7 @@ export function createDocumentWidgetController({createApp,loadModule,createEleme
   }
   function dispose(closeBridge=true) {
     if(disposed){if(closeBridge&&app)void app.close().catch(()=>{});return;}
-    disposed=true;ready=false;++connection;clearView();latest=null;latestInput={};
+    disposed=true;ready=false;stopResize();++connection;clearView();latest=null;latestInput={};
     for(const [timer,resolve]of timers){clearTimeout(timer);resolve();}timers.clear();
     if(app){app.ontoolresult=undefined;app.ontoolinput=undefined;app.ontoolcancelled=undefined;app.onclose=undefined;if(closeBridge)void app.close().catch(()=>{});}
   }

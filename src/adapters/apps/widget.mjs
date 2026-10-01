@@ -1,4 +1,5 @@
 import { App } from '@modelcontextprotocol/ext-apps';
+import { observeDocumentSize } from './resize.mjs';
 import { createDocumentWidgetController } from './bridge.mjs';
 
 export function mountDocumentWidget({root=document.getElementById('document-root'),status=document.getElementById('app-status'),retry=document.getElementById('app-retry')}={}) {
@@ -6,7 +7,8 @@ export function mountDocumentWidget({root=document.getElementById('document-root
   const moduleUrl=new URL(root.dataset.moduleUrl);
   const controller=createDocumentWidgetController({
     root,
-    createApp:()=>new App({name:'language-canvas-document',version:'1.0.0'},{availableDisplayModes:['inline','fullscreen']},{autoResize:true,strict:true}),
+    createApp:()=>new App({name:'language-canvas-document',version:'1.0.0'},{availableDisplayModes:['inline','fullscreen']},{autoResize:false,strict:true}),
+    observeSize:app=>observeDocumentSize(app),
     loadModule:async attempt=>{
       if(customElements.get('language-document'))return;
       const url=new URL(moduleUrl);if(attempt)url.searchParams.set('document_retry',String(attempt));

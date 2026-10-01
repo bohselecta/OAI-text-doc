@@ -6,14 +6,14 @@ import { APPS_META, APPS_TOOLS } from '../src/adapters/apps/routes.mjs';
 const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
 const initial=(contextId='a',id='one',openedAt=1)=>({_meta:{[APPS_META]:{kind:'bootstrap',requestId:`${contextId}-${id}-${openedAt}`,openedAt,contextId,response:{status:200,body:null},session:{actor:{role:'admin'},local:true},documents:[{id}],document:{id,sections:[{id:'section',content:`private-${contextId}`}],revision:1}}}});
 const response=(contextId,body,status=200)=>({_meta:{[APPS_META]:{kind:'response',contextId,response:{status,body}}},...(status>=400?{isError:true}:{})});
-function fixture({connect,callServerTool,loadModule,downloadFile,capabilities={downloadFile:{}}}={}) {
+function fixture({connect,callServerTool,loadModule,downloadFile,observeSize,capabilities={downloadFile:{}}}={}) {
   const apps=[],elements=[],statuses=[];
   const root={children:[],replaceChildren(){this.children=[];},append(element){this.children.push(element);element.isConnected=true;}};
   const controller=createDocumentWidgetController({root,initialResultDelay:0,
     createApp:()=>{
       const app={calls:[],async connect(){if(connect)await connect(app,apps.length);else app.ontoolresult(initial());},async close(){app.onclose?.();},async callServerTool(request){app.calls.push(request);return callServerTool?callServerTool(request,app):response('a',{value:'ok'});},getHostCapabilities:()=>capabilities,downloadFile:downloadFile??(async()=>({}))};apps.push(app);return app;
     },
-    loadModule:loadModule??(async()=>{}),
+    loadModule:loadModule??(async()=>{}),observeSize,
     createElement:()=>{const element={s:{instructions:{secret:'do not persist'},doc:{content:'old'},proposal:{content:'secret'}},root:{replaceChildren(){}},remove(){this.removed=true;},setAttribute(name,value){this[name]=value;},configure(options){this.options=options;},render(){this.rendered=true;}};elements.push(element);return element;},
     onStatus:(message,retry)=>statuses.push({message,retry})
   });
@@ -104,4 +104,14 @@ test('insufficient-scope challenge preserves the view and asks for account recon
   const f=fixture({callServerTool:async()=>denied});await f.controller.start();const current=f.controller.element;
   await assert.rejects(current.api('/documents','POST',{type:'example'}),error=>error.code==='INSUFFICIENT_SCOPE'&&/Reconnect/.test(error.message));
   assert.equal(f.controller.element,current);assert.equal(f.apps[0].calls.length,1);f.controller.dispose();
+});
+
+test('controller disposes each resize subscription before retry, closed host and teardown',async()=>{
+  let active=0,started=0,stopped=0;
+  const f=fixture({observeSize:()=>{active++;started++;return()=>{active--;stopped++;};}});
+  await f.controller.start();assert.equal(active,1);
+  await f.controller.start();assert.equal(active,1);assert.equal(stopped,1);
+  f.apps.at(-1).onclose();assert.equal(active,0);
+  await f.controller.start();assert.equal(active,1);
+  f.controller.dispose();assert.equal(active,0);assert.equal(started,3);assert.equal(stopped,3);
 });

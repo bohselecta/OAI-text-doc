@@ -104,6 +104,8 @@ def main():
                     # A failed asset load must stay bounded even when the host honors
                     # every autoResize notification (status is an out-of-flow overlay).
                     failure=context.new_page()
+                    failure_errors=[]
+                    failure.on('pageerror',lambda error:failure_errors.append(str(error)))
                     failure.route('**/ui/document.mjs',lambda route:route.abort())
                     failure.goto(origin,wait_until='domcontentloaded')
                     failure_frame=failure.frame_locator('#document')
@@ -112,8 +114,16 @@ def main():
                     sizes=failure.evaluate('()=>window.__sizes??[]')
                     assert len(sizes)<10 and all(height<=1200 for height in sizes),sizes
                     failure.screenshot(path=str(REPORT/'apps-initialization-error.png'),full_page=True)
+                    failure.unroute('**/ui/document.mjs')
+                    failure_frame.get_by_role('button',name='Retry connection',exact=True).click()
+                    expect(failure_frame.get_by_label('Propose section change',exact=True)).to_be_visible(timeout=20000)
+                    failure.set_viewport_size({'width':820,'height':900})
+                    failure.wait_for_timeout(500)
+                    assert not failure_errors,failure_errors
+                    sizes=failure.evaluate('()=>window.__sizes??[]')
+                    assert sizes and len(sizes)<15 and all(height<=1200 for height in sizes),sizes
                     failure.close()
-                    checks.append('Failed initialization exposes retry without an auto-resize feedback loop')
+                    checks.append('Failed initialization retries successfully; resized reconnected host has no stale observer errors')
                     assert not errors,errors
                     context.close();browser.close()
                 except Exception:
