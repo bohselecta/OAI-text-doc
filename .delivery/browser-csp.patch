@@ -1,0 +1,60 @@
+--- a/tests/browser.py
++++ b/tests/browser.py
+@@ -83,6 +83,16 @@
+                     with response:
+                         return {"status": response.status, "body": response.read().decode(), "headers": dict(response.headers)}
+ 
++                def wait_component_idle():
++                    # Poll via CDP evaluation instead of wait_for_function's string
++                    # evaluator: the shipped CSP intentionally disallows unsafe-eval.
++                    deadline = time.monotonic() + 15
++                    while time.monotonic() < deadline:
++                        if page.evaluate("() => !document.querySelector('language-document')?.s.busy"):
++                            return
++                        page.wait_for_timeout(25)
++                    raise AssertionError("Document did not finish its operation within 15 seconds")
++
+                 def mount():
+                     if not args.memory:
+                         page.goto(origin, wait_until="networkidle")
+@@ -98,7 +108,7 @@
+                         component = component.replace('<link rel="stylesheet" href="${STYLE}">', '<style>${DOCUMENT_TEST_CSS}</style>').replace("export ", "")
+                         page.add_script_tag(content="const DOCUMENT_TEST_CSS=" + json.dumps((ROOT / "src/ui/document.css").read_text()) + ";\n" + "window.fetch=async(url,options={})=>{const r=await window.documentTestTransport({url,method:options.method||'GET',headers:options.headers||{},body:options.body??null});return new Response(r.body,{status:r.status,headers:r.headers});};\n" + presentation + "\n" + component + "\nDocumentModule.prototype.download=function(content,name,type){window.documentTestExport({content,name,type});};")
+                     expect(page.locator('[data-section="intent"]')).to_be_visible()
+-                    page.wait_for_function("!document.querySelector('language-document').s.busy")
++                    wait_component_idle()
+ 
+                 if args.memory:
+                     page.expose_function("documentTestTransport", transport)
+@@ -110,7 +120,7 @@
+                     return page.evaluate(shadow + ".s")
+ 
+                 def wait_idle():
+-                    page.wait_for_function("!document.querySelector('language-document').s.busy")
++                    wait_component_idle()
+                     page.wait_for_timeout(40)
+ 
+                 def action(name: str):
+--- a/docs/evidence/local-verification.json
++++ b/docs/evidence/local-verification.json
+@@ -1,5 +1,5 @@
+ {
+-  "recordedAt": "2026-09-30T23:45:45.946102+00:00",
++  "recordedAt": "2026-10-01T00:15:18.003235+00:00",
+   "node": "22.16.0",
+   "tests": {
+     "passed": 117,
+@@ -30,10 +30,11 @@
+     "src/ui/presentation.mjs": "7f2fe65a777372b681ab06cdd19b01914f7aed916c3a16b2741eca625e9b9209",
+     "src/ui/shell.css": "3051e3e7da3c3e444b3e58972e0ec4634cd42a28e613f31687dbb19218bd3b8a",
+     "tests/auth-provider.test.mjs": "3b99f1ac26dd594d2d687a666a0af6076bb61e3915dd915a82a3ba39c4c30d95",
+-    "tests/browser.py": "8c41ecf633f98d055156f7850e653fa78c155a85aa0d0c87a3a122d7b0626496",
++    "tests/browser.py": "98c40540f32662573b83b6a15f64e6cd5bdc947bebc1d15c2c209e3cc52e713a",
+     "tests/core.test.mjs": "18ba838b0f01acbcb06b043ce524d38ef8df2a6d53fca9ae330bb618d1d955ae",
+     "tests/http.test.mjs": "d0d4850736346b1558ba227cf302379fe66ae8897069c784c18f9c592c94270d",
+     "tests/requirements.txt": "df7696acf1e200684a962c8b7cb25363273b8239093235e68bb3f60231a9799f",
+     "tests/store.test.mjs": "ffef3d3c885e19f4dd03de64f91490ea5a4f56a94aa11f029dec536c458336ad"
+-  }
++  },
++  "nativeHarnessCorrection": "String polling replaced with CSP-compatible CDP polling; same 15 acceptance groups, no application CSP change."
+ }
