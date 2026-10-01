@@ -16,3 +16,6 @@ Read `docs/CONTRACT.md`, `docs/ARCHITECTURE.md`, and `docs/STATUS.md` before cha
 `npm test`, `npm run build`, and `python tests/browser.py` (with Chromium and Python Playwright installed). Check desktop, mobile, keyboard interaction, reduced motion, error/recovery and source-to-export integrity. Record exact evidence and untested deployment/provider assumptions in `docs/STATUS.md`.
 
 Keep documentation concise and near code. No secrets, paid services, new provider entitlements, unsolicited outreach, production deployment or permissions expansion without authorization.
+
+## Whole-intention addition (2026-10-01)
+The new `src/intention` wrapper follows `docs/intention/CONTRACT.md`: an editable whole seed, optional nested detail, whole/part intervention, material decisions, separate related-change approval, and an offline project capsule. Its seed and boundary metadata are directly editable; document content is still changed by instructions/proposals. Keep all 19 files in `docs/native-module-contract.json` byte-identical. `npm run dev:intention` is additive; existing native and hosted entries remain supported. Test `tests/intention*.test.mjs`, `npm run build:intention`, and `python tests/intention_browser.py` in addition to all previous checks.

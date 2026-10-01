@@ -11,6 +11,24 @@ Document turns Language Canvas into a working module: select a semantic section,
 
 The proposed Spaces creation item is **Document**, alongside Page, Site and Image. The included shell demonstrates placement; it does not install anything into ChatGPT or represent OpenAI’s internal implementation. The iconography is original. This repository is not an official OpenAI product.
 
+## Whole-intention workspace
+
+An additive workspace starts from one editable intention. Keep the whole visible or unfold nested parts; use whole/selected-part instructions, record material decisions, and approve any related changes separately. The existing native Document module and Apps SDK adapter stay intact.
+
+```sh
+npm ci --ignore-scripts
+npm run dev:intention
+# Open http://127.0.0.1:4175
+```
+
+Local mode records exact `Replace with:` / `Append:` part instructions; it never pretends to be an LLM. Set the existing server-only `DOCUMENT_PROVIDER=openai`, `OPENAI_API_KEY`, and explicit `OPENAI_MODEL` configuration for real development/discussion calls. No live provider or paid inference was exercised during development.
+
+Export an interactive HTML capsule to explore/edit offline, a complete JSON backup, or an accepted-source BUILD handoff. The HTML contains structured state and a local editor, not embedded AI or credentials. Browser saves do not rewrite a downloaded file: export a new copy after editing.
+
+- [Behavior contract](docs/intention/CONTRACT.md)
+- [Implementation and acceptance status](docs/intention/STATUS.md)
+
+
 ## Why Document
 
 **Scope is enforced, not merely requested.** A model cannot replace arbitrary sections. The server validates the exact section, source revision, editor, lock and response schema before a proposal can be accepted.
