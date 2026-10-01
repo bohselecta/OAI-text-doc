@@ -13,6 +13,9 @@ request origin/host, authenticate the access token, and bound/parse JSON.
 Pass `parsedBody`, the trusted `actor`, and
 `dispatch(actor, { method, path, body }) -> { status, body, headers }`.
 Service paths include `/api`. HTTP authentication is repeated per request.
+The endpoint accepts POST only. Optional GET event streams and DELETE session
+termination receive an immediate `405` with `Allow: POST`; this JSON-only slice
+has no cross-request sessions or server notifications to retain.
 The host may supply a server-trusted `authorizationChallenge` string. A service
 `FORBIDDEN` response then includes `mcp/www_authenticate` only in result metadata,
 allowing OAuth scope reauthorization without replaying the denied action.

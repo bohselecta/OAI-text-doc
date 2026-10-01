@@ -180,3 +180,25 @@ test('StreamableHTTP permission denial forwards trusted OAuth challenge only in 
   assert.equal(result._meta['mcp/www_authenticate'],challenge);
   assert.doesNotMatch(JSON.stringify({content:result.content,structuredContent:result.structuredContent}),/Bearer|resource_metadata|document:publish/);
 });
+test('stateless transport immediately closes GET and DELETE with 405 while SDK POST still works',async t=>{
+  let dispatched=0;
+  const http=createServer(async(req,res)=>{
+    let raw='';for await(const chunk of req)raw+=chunk;
+    await handleAppsMcpRequest(req,res,{parsedBody:raw?JSON.parse(raw):undefined,actor,assetBase:'http://127.0.0.1:4173',dispatch:async(...args)=>{dispatched++;return dispatch(...args);}});
+  });
+  await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));
+  const url=new URL(`http://127.0.0.1:${http.address().port}/mcp`);
+  const client=new Client({name:'stateless-transport-test',version:'1.0.0'});
+  t.after(async()=>{await client.close();http.closeAllConnections();await new Promise(resolve=>http.close(resolve));});
+  for(const method of ['GET','DELETE']) {
+    const response=await fetch(url,{method,headers:{Accept:'text/event-stream'},signal:AbortSignal.timeout(1500)});
+    assert.equal(response.status,405);assert.equal(response.headers.get('allow'),'POST');
+    const body=await response.json();assert.equal(body.jsonrpc,'2.0');assert.match(body.error.message,/POST only/);
+  }
+  assert.equal(dispatched,0);
+  // The official SDK tolerates the optional GET being unavailable.
+  await client.connect(new StreamableHTTPClientTransport(url));
+  assert.equal((await client.listTools()).tools.length,3);
+  assert.equal((await client.callTool({name:APPS_TOOLS.open,arguments:{documentId:'doc-1'}})).structuredContent.documentId,'doc-1');
+  assert.equal(dispatched,3);
+});

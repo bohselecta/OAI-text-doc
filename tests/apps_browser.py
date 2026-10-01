@@ -31,7 +31,8 @@ def main():
                 browser=p.chromium.launch(**launch)
                 context=browser.new_context(viewport={'width':1536,'height':1024},reduced_motion='reduce',accept_downloads=True)
                 page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
-                page.goto(origin,wait_until='networkidle')
+                page.on('console',lambda message: print('BROWSER '+message.type+': '+message.text) if message.type=='error' else None)
+                page.goto(origin,wait_until='domcontentloaded')
                 frame=page.frame_locator('#document')
                 expect(frame.get_by_role('button',name='Create a Document',exact=True)).to_be_visible(timeout=20000)
                 expect(page.locator('#error')).to_have_text('')
@@ -87,7 +88,7 @@ def main():
                 assert state()==after
                 frame.get_by_label('Dismiss error',exact=True).click()
                 checks.append('History, rejected instruction recovery and saved-source integrity survive the bridge')
-                page.reload(wait_until='networkidle')
+                page.reload(wait_until='domcontentloaded')
                 expect(frame.get_by_label('Propose section change',exact=True)).to_be_visible(timeout=20000);idle()
                 assert state()==after
                 checks.append('Reload rehydrates persisted PostgreSQL source over MCP')

@@ -132,6 +132,14 @@ export function createDocumentMcpServer({dispatch,actor,assetBase,widgetDomain,a
 
 /** HTTP host must enforce authentication, host/origin and bounded JSON first. */
 export async function handleAppsMcpRequest(req,res,{parsedBody,...options}) {
+  // This stateless JSON-only adapter has no cross-request event stream or
+  // session to terminate. Decline optional SSE explicitly instead of leaving
+  // an idle GET connection (and its request-scoped store) open indefinitely.
+  if(req.method!=='POST') {
+    res.writeHead(405,{'Allow':'POST','Content-Type':'application/json; charset=utf-8'});
+    res.end(JSON.stringify({jsonrpc:'2.0',error:{code:-32000,message:'This stateless MCP endpoint supports POST only.'},id:null}));
+    return;
+  }
   const server=createDocumentMcpServer(options);
   const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
   const close=()=>{void transport.close();void server.close();};
