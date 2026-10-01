@@ -134,7 +134,15 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             idle(second);expect(second.get_by_role('alert')).to_contain_text('valid capsule JSON')
             expect(second.get_by_label('Current result')).to_contain_text('Notice one small change')
             before_import_id=second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")
-            malicious=reexport.read_text().replace('<body>','<body><script>window.IMPORTED_ATTACK=true</script><img src="https://invalid.example/spy">')
+            # Corrupting every body literal also breaks the bundled runtime's template;
+            # that exposes an ambiguous second state tag and must be rejected.
+            payload='<body><script>window.IMPORTED_ATTACK=true</script><img src="https://invalid.example/spy">'
+            ambiguous=reexport.read_text().replace('<body>',payload)
+            second.locator('#import-file').set_input_files({'name':'ambiguous.html','mimeType':'text/html','buffer':ambiguous.encode()})
+            idle(second);expect(second.get_by_role('alert')).to_contain_text('Choose a Language Canvas')
+            assert second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")==before_import_id
+            # Inject an untrusted script only into the actual outer body, not code text.
+            malicious=reexport.read_text().replace('<body>',payload,1)
             second.locator('#import-file').set_input_files({'name':'import.html','mimeType':'text/html','buffer':malicious.encode()})
             idle(second);expect(second.get_by_role('status')).to_contain_text('imported as a new record')
             assert second.evaluate("() => sessionStorage.getItem('language-canvas:current-file:'+location.pathname)")!=before_import_id
