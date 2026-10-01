@@ -29,6 +29,12 @@ Export an interactive HTML capsule to explore/edit offline, a complete JSON back
 - [Architecture, recovery and native Document handoff](docs/intention/ARCHITECTURE.md)
 - [Implementation and acceptance status](docs/intention/STATUS.md)
 
+![Whole-intention workspace: editable seed, current result, optional parts and whole-context instruction composer, running in local mode.](docs/images/intention-whole-local.png)
+
+[Mobile view and proposal/decision screenshots](docs/intention/STATUS.md#screenshots) · [All six checks at the verified runtime](https://github.com/bohselecta/OAI-text-doc/actions/runs/36902664415)
+
+The standalone capsule is a local editor and portable record. Connected-mode screenshots are explicitly labelled test fixtures; no live paid model result or deployment is implied.
+
 
 ## Why Document
 

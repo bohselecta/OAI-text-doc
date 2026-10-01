@@ -1,0 +1,26 @@
+{
+  "runtimeCommit": "15cd4246df814b899965cdc13200cc7c871b0e46",
+  "nativeBaseline": "22466c2df904486dd6e67cfc97550fd1a61b6bb8",
+  "nativeProtectedFiles": 19,
+  "checks": {
+    "localNode": {
+      "version": "24.19.0",
+      "tests": 316,
+      "passed": 315,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Real PostgreSQL-only connection test; PostgreSQL17 CI job covers it separately"
+    }
+  },
+  "sha256": {
+    "src/intention/capsule.mjs": "11acd6d387f91a01ae55c5747e3af0840b0c640e1e0a370e3e59914a51818ee1",
+    "src/intention/document-bridge.mjs": "bf4073892ae0e21b8d003073289aa6130c48684ff0b97f83744b5eb236200745",
+    "src/intention/index.html": "78f07ff8396b8cfbf2f6bc514b4cc8d0eb96c06550e3d652d298bfb171eb2f87",
+    "src/intention/provider.mjs": "9a2cd03a5fac1208aab02ce53f496b9252ac6fa013fcd8e622d1d584956966d0",
+    "src/intention/server.mjs": "bc996e337a7221b0866ad9b47ef9dbe9a4ddcf440352ad6d6576eab7b59653b9",
+    "src/intention/state.mjs": "5fe08872209260965989d746fe8f30e048be8a06c8c41a4fab50cbe04d51cf12",
+    "src/intention/store.mjs": "7a309686ef8de8b7bdfa3b3b7d4b380cf4b805d2679046cf58d9e767ab4e9a73",
+    "src/intention/workspace.css": "0e7fbb4da36631919669097230b8666c93eb2203a03dab92163f3a72349dc9c2",
+    "src/intention/workspace.mjs": "7c67fc604a9ff8b103acb62fb899c8f961b9d18a69f6b24296db95a31ca5b544"
+  }
+}
