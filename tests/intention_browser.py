@@ -33,6 +33,11 @@ def idle(page):
 def click(page,name,exact=True):
     page.get_by_role('button',name=name,exact=exact).click();idle(page)
 
+def capture(page,path):
+    page.evaluate('() => scrollTo(0,0)')
+    page.evaluate('() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
+    page.screenshot(path=str(path),full_page=True)
+
 def record_part(page,title):
     click(page,'Open the parts ↗');click(page,'+ Record a part')
     page.get_by_label('Part title',exact=True).fill(title);click(page,'Record part')
@@ -59,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             page.on('console',lambda m:console_errors.append(m.text) if m.type=='error' and 'Failed to load resource' not in m.text else None)
             page.goto(local_origin,wait_until='networkidle')
             expect(page.get_by_role('heading',name='One intention. Room to unfold.')).to_be_visible()
-            page.screenshot(path=str(IMAGES/'intention-start.png'),full_page=True)
+            capture(page,IMAGES/'intention-start.png')
             page.get_by_label('Here’s what I want to make',exact=True).fill('A quiet field guide for first-time gardeners')
             click(page,'Begin →')
             expect(page.get_by_role('heading',name='Current result')).to_be_visible()
@@ -88,7 +93,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             page.get_by_label('Constraints · one per line').fill('No pesticides\nKeep it approachable')
             page.get_by_label('Acceptance · one per line').fill('A novice can follow every step')
             click(page,'Save boundaries');click(page,'The whole')
-            page.screenshot(path=str(IMAGES/'intention-whole-local.png'),full_page=True)
+            capture(page,IMAGES/'intention-whole-local.png')
             checks.append('Whole preview, explicit constraints and refresh recovery retain accepted state')
             click(page,'Constraints & acceptance')
             invalid_constraints='\n'.join('Constraint '+str(i) for i in range(65))
@@ -122,7 +127,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             second=context.new_page();second.goto(reexport.resolve().as_uri(),wait_until='load')
             expect(second.get_by_label('Current result')).to_contain_text('Notice one small change each day.')
             assert not network,network
-            offline.screenshot(path=str(IMAGES/'intention-offline.png'),full_page=True)
+            capture(offline,IMAGES/'intention-offline.png')
             checks.append('Downloaded single HTML runs offline, edits, recovers, reexports and makes zero network requests')
             # Import parsing must never run imported script tags, or replace work on invalid data.
             second.locator('#import-file').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{broken'})
@@ -170,11 +175,15 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             page.goto(origin,wait_until='networkidle')
             page.get_by_label('Here’s what I want to make',exact=True).fill('A quiet field guide for first-time gardeners')
             click(page,'Begin →')
+            click(page,'Constraints & acceptance')
+            page.get_by_label('Constraints · one per line').fill('No pesticides')
+            page.get_by_label('Acceptance · one per line').fill('A novice can follow every step')
+            click(page,'Save boundaries');click(page,'The whole')
             page.get_by_label('What should happen next?',exact=False).fill('Develop guide')
             click(page,'Develop intention ↗');click(page,'Accept this development')
             expect(page.get_by_label('Current result')).to_contain_text('Grow something good')
             expect(page.get_by_role('heading',name='Will this garden be indoors or outside?')).to_be_visible()
-            page.screenshot(path=str(IMAGES/'intention-whole-fixture.png'),full_page=True)
+            capture(page,IMAGES/'intention-whole-fixture.png')
             page.get_by_label('Answer: Will this garden be indoors or outside?').fill('Outside on a balcony')
             page.evaluate("async () => {const list=await (await fetch('/api/intention/projects')).json();const p=await (await fetch('/api/intention/projects/'+list[0].id)).json();await fetch('/api/intention/projects/'+p.id+'/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:p.revision,command:{type:'intention',title:p.title,intention:p.intention}})})}")
             click(page,'Record answer');expect(page.get_by_role('alert')).to_contain_text('newer version')
@@ -188,7 +197,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             page.get_by_label('Instruction for this part',exact=False).fill('Focus on balcony herbs')
             click(page,'Propose change ↗')
             expect(page.get_by_role('button',name='Approve related changes')).to_be_disabled()
-            page.screenshot(path=str(IMAGES/'intention-scoped-proposal.png'),full_page=True)
+            capture(page,IMAGES/'intention-scoped-proposal.png')
             click(page,'Accept this development')
             expect(page.locator('.part-content')).to_contain_text('balcony herb garden')
             expect(page.get_by_role('button',name='Approve related changes')).to_be_enabled()
@@ -231,7 +240,7 @@ with tempfile.TemporaryDirectory(prefix='canvas-intention-browser-') as director
             page.keyboard.press('Tab');assert page.evaluate('() => document.activeElement.tagName') in ['BUTTON','INPUT','TEXTAREA','SELECT']
             if page.get_by_role('button',name='Close the parts −',exact=True).count(): click(page,'Close the parts −')
             page.set_viewport_size({'width':390,'height':844})
-            page.screenshot(path=str(IMAGES/'intention-mobile.png'),full_page=True)
+            capture(page,IMAGES/'intention-mobile.png')
             assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth'), 'mobile horizontal overflow'
             click(page,'Constraints & acceptance');click(page,'The whole')
             expect(page.get_by_role('heading',name='Current result')).to_be_visible()

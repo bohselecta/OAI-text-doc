@@ -21,11 +21,12 @@ npm run dev:intention
 # Open http://127.0.0.1:4175
 ```
 
-Local mode records exact `Replace with:` / `Append:` part instructions; it never pretends to be an LLM. Set the existing server-only `DOCUMENT_PROVIDER=openai`, `OPENAI_API_KEY`, and explicit `OPENAI_MODEL` configuration for real development/discussion calls. No live provider or paid inference was exercised during development.
+Local mode records exact `Replace with:` / `Append:` part instructions; it never pretends to be an LLM. Set the existing server-only `DOCUMENT_PROVIDER=openai`, `OPENAI_API_KEY`, and explicit `OPENAI_MODEL` configuration for real development/discussion calls. No live provider or paid inference was exercised during development. Existing `.env` port/origin settings are honored; the startup log shows the actual URL.
 
-Export an interactive HTML capsule to explore/edit offline, a complete JSON backup, or an accepted-source BUILD handoff. The HTML contains structured state and a local editor, not embedded AI or credentials. Browser saves do not rewrite a downloaded file: export a new copy after editing.
+Export an interactive HTML capsule to explore/edit offline, a complete JSON backup, native Document JSON for its existing audit workflow, or an accepted-source BUILD handoff. The HTML contains structured state and a local editor, not embedded AI or credentials. Browser saves do not rewrite a downloaded file: export a new copy after editing.
 
 - [Behavior contract](docs/intention/CONTRACT.md)
+- [Architecture, recovery and native Document handoff](docs/intention/ARCHITECTURE.md)
 - [Implementation and acceptance status](docs/intention/STATUS.md)
 
 

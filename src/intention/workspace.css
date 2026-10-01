@@ -5,3 +5,4 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
 .whole-mobile{display:none!important}@media(max-width:650px){.sidebar-tools{flex-wrap:wrap}.whole-mobile{display:block!important}}
+h1,h2,h3,.decision-card p,.small-note{overflow-wrap:anywhere}
