@@ -10,6 +10,9 @@ test('Vercel static output contains OAuth discovery without reserved-path rewrit
   assert.deepEqual(metadata.authorization_servers,['https://identity.example/']);
   const config=JSON.parse(readFileSync('vercel.json'));
   assert.ok(config.rewrites.every(rule=>!rule.source.startsWith('/.well-known')));
+  const headers=Object.fromEntries(config.headers.find(rule=>rule.source==='/.well-known/oauth-protected-resource').headers.map(h=>[h.key,h.value]));
+  assert.deepEqual(headers,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'});
+  for(const asset of ['document.mjs','presentation.mjs','document.css','document.svg'])assert.deepEqual(readFileSync('dist/public/ui/'+asset),readFileSync('src/ui/'+asset));
   const manifest=JSON.parse(readFileSync('dist/hosted-manifest.json'));assert.equal(manifest.deployable,true);
   assert.ok(!readFileSync('dist/public/.well-known/oauth-protected-resource','utf8').includes('DATABASE_URL'));
 });

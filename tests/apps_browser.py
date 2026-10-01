@@ -32,74 +32,97 @@ def main():
                 context=browser.new_context(viewport={'width':1536,'height':1024},reduced_motion='reduce',accept_downloads=True)
                 page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
                 page.on('console',lambda message: print('BROWSER '+message.type+': '+message.text) if message.type=='error' else None)
-                page.goto(origin,wait_until='domcontentloaded')
-                frame=page.frame_locator('#document')
-                expect(frame.get_by_role('button',name='Create a Document',exact=True)).to_be_visible(timeout=20000)
-                expect(page.locator('#error')).to_have_text('')
-                assert page.locator('iframe').get_attribute('sandbox')=='allow-scripts'
-                checks.append('Read-only open initializes an empty opaque-sandbox app without seeding source')
-                frame.get_by_role('button',name='Create a Document',exact=True).click()
-                frame.get_by_role('button',name='Explore an example',exact=True).click()
-                expect(frame.get_by_label('Propose section change',exact=True)).to_be_visible()
-                component=frame.locator('language-document')
-                def state():return component.evaluate('(el)=>structuredClone(el.s.doc)')
-                def idle():
-                    deadline=time.monotonic()+20
-                    while time.monotonic()<deadline:
-                        if component.evaluate('(el)=>!el.s.busy'):return
-                        time.sleep(.05)
-                    raise AssertionError('Canvas operation did not settle')
-                idle();before=state();assert before['revision']==1
-                assert component.locator('[contenteditable]').count()==0
-                checks.append('Exact native component creates and renders a document through MCP tools and PostgreSQL')
-                frame.locator('[data-section="recovery"]').click()
-                frame.locator('#instruction').fill('Define recovery behavior')
-                frame.get_by_label('Propose section change',exact=True).click()
-                expect(frame.get_by_role('region',name='Proposed section change')).to_be_visible();idle()
-                assert state()==before
-                checks.append('Scoped proposal leaves canonical source unchanged until explicit acceptance')
-                frame.get_by_role('button',name='Accept change',exact=True).click();idle()
-                after=state();assert after['revision']==2
-                for section in before['sections']:
-                    current=next(s for s in after['sections'] if s['id']==section['id'])
-                    if section['id']!='recovery':assert current==section
-                checks.append('Accepted revision changes exactly one section; stale-safe durable path exercised')
-                frame.get_by_role('button',name='Publish',exact=True).click()
-                frame.get_by_role('button',name='Run audit',exact=True).click();idle()
-                expect(frame.get_by_role('button',name='Publish BUILD',exact=True)).to_be_disabled()
-                expect(frame.get_by_label('Include model + fresh-reader review')).to_be_disabled()
-                assert state()==after
-                checks.append('Publish derives a structural audit without mutating Draft; rehearsal release remains blocked')
-                with page.expect_download() as download_info:
-                    frame.get_by_role('button',name='Export draft',exact=True).click()
-                downloaded=download_info.value
-                text=Path(downloaded.path()).read_text()
-                assert 'DRAFT EXPORT' in text and 'Semantic review: not_run' in text
-                for section in after['sections']:assert section['content'] in text
-                checks.append('MCP Apps host download exports complete BUILD draft with honest audit receipt')
-                page.screenshot(path=str(REPORT/'apps-publish-desktop.png'),full_page=True)
-                frame.get_by_role('button',name='Draft',exact=True).click()
-                frame.get_by_label('View history',exact=True).click()
-                expect(frame.get_by_role('dialog')).to_contain_text('Hash chain verified')
-                frame.get_by_label('Close dialog',exact=True).click()
-                frame.locator('#instruction').fill('Unsupported request for rehearsal')
-                frame.get_by_label('Propose section change',exact=True).click();idle()
-                expect(frame.get_by_role('alert')).to_contain_text('Rehearsal is deterministic')
-                assert state()==after
-                frame.get_by_label('Dismiss error',exact=True).click()
-                checks.append('History, rejected instruction recovery and saved-source integrity survive the bridge')
-                page.reload(wait_until='domcontentloaded')
-                expect(frame.get_by_label('Propose section change',exact=True)).to_be_visible(timeout=20000);idle()
-                assert state()==after
-                checks.append('Reload rehydrates persisted PostgreSQL source over MCP')
-                page.set_viewport_size({'width':390,'height':844})
-                frame.locator('#instruction').focus()
-                assert frame.locator('#instruction').evaluate('(el)=>el.getRootNode().activeElement===el')
-                assert component.evaluate('(el)=>getComputedStyle(el.root.querySelector(".app")).height')
-                page.screenshot(path=str(REPORT/'apps-draft-mobile.png'),full_page=True)
-                checks.append('Mobile 390px and keyboard-focus/reduced-motion canvas inspected')
-                assert not errors,errors
-                context.close();browser.close()
+                try:
+                    page.goto(origin,wait_until='domcontentloaded')
+                    frame=page.frame_locator('#document')
+                    expect(frame.get_by_role('button',name='Create a Document',exact=True)).to_be_visible(timeout=20000)
+                    expect(page.locator('#error')).to_have_text('')
+                    assert page.locator('iframe').get_attribute('sandbox')=='allow-scripts'
+                    checks.append('Read-only open initializes an empty opaque-sandbox app without seeding source')
+                    frame.get_by_role('button',name='Create a Document',exact=True).click()
+                    frame.get_by_role('button',name='Explore an example',exact=True).click()
+                    expect(frame.get_by_label('Propose section change',exact=True)).to_be_visible()
+                    component=frame.locator('language-document')
+                    def state():return component.evaluate('(el)=>structuredClone(el.s.doc)')
+                    def idle():
+                        deadline=time.monotonic()+20
+                        while time.monotonic()<deadline:
+                            if component.evaluate('(el)=>!el.s.busy'):return
+                            time.sleep(.05)
+                        raise AssertionError('Canvas operation did not settle')
+                    idle();before=state();assert before['revision']==1
+                    assert component.locator('[contenteditable]').count()==0
+                    checks.append('Exact native component creates and renders a document through MCP tools and PostgreSQL')
+                    frame.locator('[data-section="recovery"]').click()
+                    frame.locator('#instruction').fill('Define recovery behavior')
+                    frame.get_by_label('Propose section change',exact=True).click()
+                    expect(frame.get_by_role('region',name='Proposed section change')).to_be_visible();idle()
+                    assert state()==before
+                    checks.append('Scoped proposal leaves canonical source unchanged until explicit acceptance')
+                    frame.get_by_role('button',name='Accept change',exact=True).click();idle()
+                    after=state();assert after['revision']==2
+                    for section in before['sections']:
+                        current=next(s for s in after['sections'] if s['id']==section['id'])
+                        if section['id']!='recovery':assert current==section
+                    checks.append('Accepted revision changes exactly one section; stale-safe durable path exercised')
+                    frame.get_by_role('button',name='Publish',exact=True).click()
+                    frame.get_by_role('button',name='Run audit',exact=True).click();idle()
+                    expect(frame.get_by_role('button',name='Publish BUILD',exact=True)).to_be_disabled()
+                    expect(frame.get_by_label('Include model + fresh-reader review')).to_be_disabled()
+                    assert state()==after
+                    checks.append('Publish derives a structural audit without mutating Draft; rehearsal release remains blocked')
+                    with page.expect_download() as download_info:
+                        frame.get_by_role('button',name='Export draft',exact=True).click()
+                    downloaded=download_info.value
+                    text=Path(downloaded.path()).read_text()
+                    assert 'DRAFT EXPORT' in text and 'Semantic review: not_run' in text
+                    for section in after['sections']:assert section['content'] in text
+                    checks.append('MCP Apps host download exports complete BUILD draft with honest audit receipt')
+                    page.screenshot(path=str(REPORT/'apps-publish-desktop.png'),full_page=True)
+                    frame.get_by_role('button',name='Draft',exact=True).click()
+                    frame.get_by_label('View history',exact=True).click()
+                    expect(frame.get_by_role('dialog')).to_contain_text('Hash chain verified')
+                    frame.get_by_label('Close dialog',exact=True).click()
+                    frame.locator('#instruction').fill('Unsupported request for rehearsal')
+                    frame.get_by_label('Propose section change',exact=True).click();idle()
+                    expect(frame.get_by_role('alert')).to_contain_text('Rehearsal is deterministic')
+                    assert state()==after
+                    frame.get_by_label('Dismiss error',exact=True).click()
+                    checks.append('History, rejected instruction recovery and saved-source integrity survive the bridge')
+                    page.reload(wait_until='domcontentloaded')
+                    expect(frame.get_by_label('Propose section change',exact=True)).to_be_visible(timeout=20000);idle()
+                    assert state()==after
+                    checks.append('Reload rehydrates persisted PostgreSQL source over MCP')
+                    page.set_viewport_size({'width':390,'height':844})
+                    if frame.get_by_label('Close sidebar',exact=True).is_visible():
+                        frame.get_by_label('Close sidebar',exact=True).click()
+                    frame.locator('#instruction').focus()
+                    assert frame.locator('#instruction').evaluate('(el)=>el.getRootNode().activeElement===el')
+                    assert component.evaluate('(el)=>getComputedStyle(el.root.querySelector(".app")).height')
+                    page.screenshot(path=str(REPORT/'apps-draft-mobile.png'),full_page=True)
+                    checks.append('Mobile 390px and keyboard-focus/reduced-motion canvas inspected')
+                    # A failed asset load must stay bounded even when the host honors
+                    # every autoResize notification (status is an out-of-flow overlay).
+                    failure=context.new_page()
+                    failure.route('**/ui/document.mjs',lambda route:route.abort())
+                    failure.goto(origin,wait_until='domcontentloaded')
+                    failure_frame=failure.frame_locator('#document')
+                    expect(failure_frame.locator('#app-retry')).to_be_visible(timeout=20000)
+                    failure.wait_for_timeout(500)
+                    sizes=failure.evaluate('()=>window.__sizes??[]')
+                    assert len(sizes)<10 and all(height<=1200 for height in sizes),sizes
+                    failure.screenshot(path=str(REPORT/'apps-initialization-error.png'),full_page=True)
+                    failure.close()
+                    checks.append('Failed initialization exposes retry without an auto-resize feedback loop')
+                    assert not errors,errors
+                    context.close();browser.close()
+                except Exception:
+                    (REPORT/'apps-failure.html').write_text(page.content())
+                    page.screenshot(path=str(REPORT/'apps-failure.png'),full_page=True)
+                    for index,failed_frame in enumerate(page.frames):
+                        try: (REPORT/f'apps-failure-frame-{index}.html').write_text(failed_frame.content())
+                        except Exception: pass
+                    raise
         finally:
             server.terminate()
             try:server.wait(timeout=10)

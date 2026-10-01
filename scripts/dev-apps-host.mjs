@@ -13,6 +13,7 @@ try{
   const frame=document.querySelector('iframe');
   const bridge=new AppBridge(null,{name:'Document local rehearsal',version:'1.0.0'},{serverTools:{},downloadFile:{},logging:{}},{hostContext:{theme:'dark',displayMode:'fullscreen',availableDisplayModes:['fullscreen'],containerDimensions:{width:innerWidth,height:innerHeight-65}}});
   bridge.oncalltool=args=>client.callTool(args);
+  bridge.onsizechange=({height})=>{if(Number.isFinite(height)){window.__sizes??=[];window.__sizes.push(height);frame.style.height=height+'px';}};
   bridge.ondownloadfile=async({contents})=>{
     window.__downloads??=[];
     for(const item of contents){
