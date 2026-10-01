@@ -11,6 +11,31 @@ Document turns Language Canvas into a working module: select a semantic section,
 
 The proposed Spaces creation item is **Document**, alongside Page, Site and Image. The included shell demonstrates placement; it does not install anything into ChatGPT or represent OpenAI’s internal implementation. The iconography is original. This repository is not an official OpenAI product.
 
+## Whole-intention workspace
+
+An additive workspace starts from one editable intention. Keep the whole visible or unfold nested parts; use whole/selected-part instructions, record material decisions, and approve any related changes separately. The existing native Document module and Apps SDK adapter stay intact.
+
+```sh
+npm ci --ignore-scripts
+npm run dev:intention
+# Open http://127.0.0.1:4175
+```
+
+Local mode records exact `Replace with:` / `Append:` part instructions; it never pretends to be an LLM. Set the existing server-only `DOCUMENT_PROVIDER=openai`, `OPENAI_API_KEY`, and explicit `OPENAI_MODEL` configuration for real development/discussion calls. No live provider or paid inference was exercised during development. Existing `.env` port/origin settings are honored; the startup log shows the actual URL.
+
+Export an interactive HTML capsule to explore/edit offline, a complete JSON backup, native Document JSON for its existing audit workflow, or an accepted-source BUILD handoff. The HTML contains structured state and a local editor, not embedded AI or credentials. Browser saves do not rewrite a downloaded file: export a new copy after editing.
+
+- [Behavior contract](docs/intention/CONTRACT.md)
+- [Architecture, recovery and native Document handoff](docs/intention/ARCHITECTURE.md)
+- [Implementation and acceptance status](docs/intention/STATUS.md)
+
+![Whole-intention workspace: editable seed, current result, optional parts and whole-context instruction composer, running in local mode.](docs/images/intention-whole-local.png)
+
+[Mobile view and proposal/decision screenshots](docs/intention/STATUS.md#screenshots) · [All six checks at the verified runtime](https://github.com/bohselecta/OAI-text-doc/actions/runs/36902664415)
+
+The standalone capsule is a local editor and portable record. Connected-mode screenshots are explicitly labelled test fixtures; no live paid model result or deployment is implied.
+
+
 ## Why Document
 
 **Scope is enforced, not merely requested.** A model cannot replace arbitrary sections. The server validates the exact section, source revision, editor, lock and response schema before a proposal can be accepted.

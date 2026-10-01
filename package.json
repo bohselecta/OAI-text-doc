@@ -21,7 +21,10 @@
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate-neon.mjs",
     "test:neon": "node --test tests/neon-store.test.mjs",
     "dev:apps": "node --env-file-if-exists=.env scripts/dev-apps.mjs",
-    "test:apps-browser": "python tests/apps_browser.py"
+    "test:apps-browser": "python tests/apps_browser.py",
+    "dev:intention": "node --env-file-if-exists=.env scripts/dev-intention.mjs",
+    "build:intention": "node scripts/build-intention.mjs",
+    "test:intention-browser": "python tests/intention_browser.py"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^2.0.3",
