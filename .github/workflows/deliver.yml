@@ -2,7 +2,7 @@ name: Materialize and verify Document
 on:
   push:
     branches: [feat/document-language-canvas]
-    paths: ['.delivery/manifest.json']
+    paths: ['.delivery/manifest.json', '.github/workflows/deliver.yml']
 permissions:
   contents: write
 concurrency:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: feat/document-language-canvas
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24
@@ -38,6 +38,14 @@ jobs:
                   assert not any(p in ['.git','.delivery','data','node_modules'] for p in pathlib.PurePosixPath(member.name).parts)
               archive.extractall(root,filter='data')
           PY
+          git apply --check .delivery/browser-csp.patch
+          git apply .delivery/browser-csp.patch
+          python - <<'PY'
+          import hashlib,json,pathlib
+          manifest=json.loads(pathlib.Path('docs/evidence/local-verification.json').read_text())
+          for name,digest in manifest['files'].items():
+              assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest, name
+          PY
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run build
@@ -58,14 +66,14 @@ jobs:
           report=json.loads((p/'native-browser.json').read_text())
           assert report['passed']==15 and report['pageErrors']==[] and report['providerCalls']==0
           assert report['mode'].startswith('native Chromium')
-          (p/'native-ci.md').write_text('# Native browser CI\n\nObserved successful native Chromium navigation, HTTP, CSP loading and real downloads. All 15 browser behavior groups passed, with zero page errors and zero provider calls. Node 24 unit/integration tests and runtime packaging also passed in this run.\n\nRun: '+os.environ['RUN_URL']+'\n\nTransport commit: '+os.environ['INPUT_SHA']+'\n\nExact input archive SHA-256: `85edf1526385374e6b7f6f4b9d3f9fb573d9e74bae75e298fb64dfa604c01fce`. Extracted source hashes match the local verification manifest. These checks do not establish live provider quality, host integration, production readiness or executed licensing.\n')
+          (p/'native-ci.md').write_text('# Native browser CI\n\nObserved successful native Chromium navigation, HTTP, CSP loading and real downloads. All 15 browser behavior groups passed, with zero page errors and zero provider calls. Node 24 unit/integration tests and runtime packaging also passed in this run.\n\nRun: '+os.environ['RUN_URL']+'\n\nTransport commit: '+os.environ['INPUT_SHA']+'\n\nBase archive SHA-256: `85edf1526385374e6b7f6f4b9d3f9fb573d9e74bae75e298fb64dfa604c01fce`, followed by the reviewed CSP-polling test patch. Every runtime/test source hash was checked against the updated local verification manifest before execution. The first native attempt exposed string-based Playwright polling blocked by the application CSP; the polling helper was corrected without changing application policy or weakening assertions.\n\nThese checks do not establish live provider quality, host integration, production readiness or executed licensing.\n')
           PY
           rm -rf .delivery
-          rm .github/workflows/deliver.yml
           git config user.name 'Document delivery'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add AGENTS.md .env.example .gitignore package.json package-lock.json README.md LICENSE.md SECURITY.md THIRD_PARTY_NOTICES.md src tests scripts docs legal .github
+          git add AGENTS.md .env.example .gitignore package.json package-lock.json README.md LICENSE.md SECURITY.md THIRD_PARTY_NOTICES.md src tests scripts docs legal
           git add -u
+          test -z "$(git diff --cached --name-only -- .github/workflows)"
           git commit -m 'Deliver tested Document module, native browser evidence and product README'
           git push origin HEAD:feat/document-language-canvas
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
